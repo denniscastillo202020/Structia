@@ -1,0 +1,21 @@
+workflows:
+  structia-android:
+    name: StructIA - Android APK
+    max_build_duration: 30
+    environment:
+      flutter: stable
+      vars:
+        PACKAGE_NAME: "com.structia.app"
+    scripts:
+      - name: Completar archivos nativos de Android (gradlew, etc.)
+        script: |
+          flutter create --platforms=android --org com.structia .
+      - name: Obtener dependencias
+        script: |
+          flutter pub get
+      - name: Compilar APK (release, sin firma propia)
+        script: |
+          flutter build apk --release
+    artifacts:
+      - build/app/outputs/**/*.apk
+      - build/app/outputs/**/mapping.txt
