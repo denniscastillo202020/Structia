@@ -3,7 +3,7 @@
 class AppConstants {
   AppConstants._();
 
-  static const String appName = 'StructIA';
+  static const String appName = 'Calculadora Grupo Castillo';
   static const String appVersion = '0.2.0';
 
   // Paddings estándar de UI (Material 3)
