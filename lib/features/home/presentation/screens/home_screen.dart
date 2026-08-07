@@ -8,6 +8,7 @@ import 'package:structia/features/calculadora_concreto/presentation/screens/calc
 import 'package:structia/features/calculadora_mamposteria/presentation/screens/calculadora_mamposteria_screen.dart';
 import 'package:structia/features/calculadora_viga/presentation/screens/calculadora_viga_screen.dart';
 import 'package:structia/features/calculadora_zapata/presentation/screens/calculadora_zapata_screen.dart';
+import 'package:structia/features/calculadora_excavacion/presentation/screens/calculadora_excavacion_screen.dart';
 import 'package:structia/features/calculadora_electrico/presentation/screens/calculadora_electrico_screen.dart';
 import 'package:structia/features/calculadora_cielo_pvc/presentation/screens/calculadora_cielo_pvc_screen.dart';
 import 'package:structia/features/guardados/presentation/screens/calculos_guardados_screen.dart';
@@ -172,6 +173,15 @@ class HomeScreen extends StatelessWidget {
                     descripcion: 'Corrida o aislada, con cama de varillas y vista en planta',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const CalculadoraZapataScreen()),
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingMd),
+                  _TarjetaCalculadora(
+                    icono: Icons.terrain_outlined,
+                    titulo: 'Excavación y relleno',
+                    descripcion: 'Volumen a excavar y relleno según las dimensiones de tus zapatas',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const CalculadoraExcavacionScreen()),
                     ),
                   ),
                   const SizedBox(height: AppConstants.paddingMd),

@@ -17,6 +17,8 @@ class CalculoGuardado {
   final double? bloquesTotal;
   final double? morteroM3;
   final double? areaNetaM2;
+  final double? volumenExcavacionM3;
+  final double? volumenRellenoM3;
 
   const CalculoGuardado({
     required this.id,
@@ -33,6 +35,8 @@ class CalculoGuardado {
     this.bloquesTotal,
     this.morteroM3,
     this.areaNetaM2,
+    this.volumenExcavacionM3,
+    this.volumenRellenoM3,
   });
 
   Map<String, dynamic> toJson() => {
@@ -50,6 +54,8 @@ class CalculoGuardado {
         'bloquesTotal': bloquesTotal,
         'morteroM3': morteroM3,
         'areaNetaM2': areaNetaM2,
+        'volumenExcavacionM3': volumenExcavacionM3,
+        'volumenRellenoM3': volumenRellenoM3,
       };
 
   factory CalculoGuardado.fromJson(Map<String, dynamic> json) {
@@ -70,6 +76,8 @@ class CalculoGuardado {
       bloquesTotal: (json['bloquesTotal'] as num?)?.toDouble(),
       morteroM3: (json['morteroM3'] as num?)?.toDouble(),
       areaNetaM2: (json['areaNetaM2'] as num?)?.toDouble(),
+      volumenExcavacionM3: (json['volumenExcavacionM3'] as num?)?.toDouble(),
+      volumenRellenoM3: (json['volumenRellenoM3'] as num?)?.toDouble(),
     );
   }
 }

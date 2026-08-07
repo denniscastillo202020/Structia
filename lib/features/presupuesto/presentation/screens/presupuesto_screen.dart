@@ -36,6 +36,10 @@ class _PresupuestoScreenState extends State<PresupuestoScreen> {
   // --- Área de muros calculada en "Muros y bloques" ---
   double? _areaMurosGuardadaM2;
 
+  // --- Volúmenes calculados en "Excavación" ---
+  double? _volumenExcavacionGuardadoM3;
+  double? _volumenRellenoGuardadoM3;
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +49,7 @@ class _PresupuestoScreenState extends State<PresupuestoScreen> {
     _controladoresCantidad =
         ActividadManoDeObra.tabla.map((_) => TextEditingController()).toList();
     _cargarAreaMuros();
+    _cargarExcavacion();
   }
 
   Future<void> _cargarAreaMuros() async {
@@ -55,14 +60,38 @@ class _PresupuestoScreenState extends State<PresupuestoScreen> {
     if (mounted) setState(() => _areaMurosGuardadaM2 = total > 0 ? total : null);
   }
 
+  Future<void> _cargarExcavacion() async {
+    final calculos = await RepositorioCalculosGuardados.listar();
+    final excavacion = calculos
+        .where((c) => c.tipo == 'Excavación')
+        .fold(0.0, (s, c) => s + (c.volumenExcavacionM3 ?? 0));
+    final relleno = calculos
+        .where((c) => c.tipo == 'Excavación')
+        .fold(0.0, (s, c) => s + (c.volumenRellenoM3 ?? 0));
+    if (mounted) {
+      setState(() {
+        _volumenExcavacionGuardadoM3 = excavacion > 0 ? excavacion : null;
+        _volumenRellenoGuardadoM3 = relleno > 0 ? relleno : null;
+      });
+    }
+  }
+
   int get _indiceActividadBloque =>
       ActividadManoDeObra.tabla.indexWhere((a) => a.nombre.startsWith('Pega de bloque'));
 
-  void _usarAreaDeMuros() {
-    final indice = _indiceActividadBloque;
-    if (indice == -1 || _areaMurosGuardadaM2 == null) return;
+  int get _indiceActividadRepello => ActividadManoDeObra.tabla
+      .indexWhere((a) => a.nombre.startsWith('Repello/Tallado y pulido general'));
+
+  int get _indiceActividadExcavacion =>
+      ActividadManoDeObra.tabla.indexWhere((a) => a.nombre.startsWith('Excavación a mano'));
+
+  int get _indiceActividadRelleno =>
+      ActividadManoDeObra.tabla.indexWhere((a) => a.nombre == 'Relleno');
+
+  void _usarValorEnIndice(int indice, double? valor) {
+    if (indice == -1 || valor == null) return;
     setState(() {
-      _controladoresCantidad[indice].text = _areaMurosGuardadaM2!.toStringAsFixed(2);
+      _controladoresCantidad[indice].text = valor.toStringAsFixed(2);
     });
   }
 
@@ -209,6 +238,9 @@ class _PresupuestoScreenState extends State<PresupuestoScreen> {
           ...List.generate(ActividadManoDeObra.tabla.length, (i) {
             final actividad = ActividadManoDeObra.tabla[i];
             final esPegaDeBloque = i == _indiceActividadBloque;
+            final esRepello = i == _indiceActividadRepello;
+            final esExcavacion = i == _indiceActividadExcavacion;
+            final esRelleno = i == _indiceActividadRelleno;
             return Card(
               child: Padding(
                 padding: const EdgeInsets.all(AppConstants.paddingSm),
@@ -216,13 +248,31 @@ class _PresupuestoScreenState extends State<PresupuestoScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(actividad.nombre, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    if (esPegaDeBloque && _areaMurosGuardadaM2 != null) ...[
+                    if ((esPegaDeBloque || esRepello) && _areaMurosGuardadaM2 != null) ...[
                       const SizedBox(height: 4),
                       ActionChip(
                         avatar: const Icon(Icons.grid_view_outlined, size: 16),
                         label: Text(
                             'Usar área de "Muros y bloques": ${_areaMurosGuardadaM2!.toStringAsFixed(2)} m²'),
-                        onPressed: _usarAreaDeMuros,
+                        onPressed: () => _usarValorEnIndice(i, _areaMurosGuardadaM2),
+                      ),
+                    ],
+                    if (esExcavacion && _volumenExcavacionGuardadoM3 != null) ...[
+                      const SizedBox(height: 4),
+                      ActionChip(
+                        avatar: const Icon(Icons.terrain_outlined, size: 16),
+                        label: Text(
+                            'Usar volumen de "Excavación": ${_volumenExcavacionGuardadoM3!.toStringAsFixed(2)} m³'),
+                        onPressed: () => _usarValorEnIndice(i, _volumenExcavacionGuardadoM3),
+                      ),
+                    ],
+                    if (esRelleno && _volumenRellenoGuardadoM3 != null) ...[
+                      const SizedBox(height: 4),
+                      ActionChip(
+                        avatar: const Icon(Icons.terrain_outlined, size: 16),
+                        label: Text(
+                            'Usar volumen de "Excavación": ${_volumenRellenoGuardadoM3!.toStringAsFixed(2)} m³'),
+                        onPressed: () => _usarValorEnIndice(i, _volumenRellenoGuardadoM3),
                       ),
                     ],
                     const SizedBox(height: 6),
