@@ -8,6 +8,7 @@ import 'package:structia/features/calculadora_concreto/presentation/screens/calc
 import 'package:structia/features/calculadora_mamposteria/presentation/screens/calculadora_mamposteria_screen.dart';
 import 'package:structia/features/calculadora_viga/presentation/screens/calculadora_viga_screen.dart';
 import 'package:structia/features/calculadora_zapata/presentation/screens/calculadora_zapata_screen.dart';
+import 'package:structia/features/calculadora_electrico/presentation/screens/calculadora_electrico_screen.dart';
 import 'package:structia/features/guardados/presentation/screens/calculos_guardados_screen.dart';
 import 'package:structia/features/presupuesto/presentation/screens/presupuesto_screen.dart';
 
@@ -197,6 +198,15 @@ class HomeScreen extends StatelessWidget {
                     descripcion: 'Láminas, canaleta, caballete y tornillos según los faldones',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const CalculadoraTechoScreen()),
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingMd),
+                  _TarjetaCalculadora(
+                    icono: Icons.electric_bolt_outlined,
+                    titulo: 'Instalación eléctrica',
+                    descripcion: 'Manguera, cable, cajas, tornillos y tablero según los puntos que agregues',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const CalculadoraElectricoScreen()),
                     ),
                   ),
                   const SizedBox(height: AppConstants.paddingMd),
