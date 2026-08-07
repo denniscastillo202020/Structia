@@ -9,6 +9,7 @@ import 'package:structia/features/calculadora_mamposteria/presentation/screens/c
 import 'package:structia/features/calculadora_viga/presentation/screens/calculadora_viga_screen.dart';
 import 'package:structia/features/calculadora_zapata/presentation/screens/calculadora_zapata_screen.dart';
 import 'package:structia/features/calculadora_electrico/presentation/screens/calculadora_electrico_screen.dart';
+import 'package:structia/features/calculadora_cielo_pvc/presentation/screens/calculadora_cielo_pvc_screen.dart';
 import 'package:structia/features/guardados/presentation/screens/calculos_guardados_screen.dart';
 import 'package:structia/features/presupuesto/presentation/screens/presupuesto_screen.dart';
 
@@ -207,6 +208,15 @@ class HomeScreen extends StatelessWidget {
                     descripcion: 'Manguera, cable, cajas, tornillos y tablero según los puntos que agregues',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const CalculadoraElectricoScreen()),
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingMd),
+                  _TarjetaCalculadora(
+                    icono: Icons.blinds_outlined,
+                    titulo: 'Cielo falso PVC',
+                    descripcion: 'Tablillas, cornisa, furring channel y tornillos, con sugerencia de orientación',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const CalculadoraCieloPvcScreen()),
                     ),
                   ),
                   const SizedBox(height: AppConstants.paddingMd),
