@@ -98,7 +98,7 @@ class CalcularCeramica {
     final areaConDesperdicio = areaNeta * factor;
 
     final areaPiezaM2 = (pieza.anchoCm / 100) * (pieza.altoCm / 100);
-    final piezasNetas = areaPiezaM2 > 0 ? areaNeta / areaPiezaM2 : 0;
+    final piezasNetas = areaPiezaM2 > 0 ? areaNeta / areaPiezaM2 : 0.0;
     final piezasTotalComprar =
         areaPiezaM2 > 0 ? (areaConDesperdicio / areaPiezaM2).ceil() : 0;
 
