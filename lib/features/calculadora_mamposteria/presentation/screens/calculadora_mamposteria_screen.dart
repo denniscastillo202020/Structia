@@ -59,6 +59,7 @@ class _CalculadoraMamposteriaScreenState extends State<CalculadoraMamposteriaScr
       etiquetaA: 'Largo (m)',
       etiquetaB: 'Alto (m)',
       etiquetaInicial: 'Pared ${_paredes.length + 1}',
+      mostrarAcabados: true,
     );
     if (resultado == null || !mounted) return;
     setState(() {
@@ -68,6 +69,8 @@ class _CalculadoraMamposteriaScreenState extends State<CalculadoraMamposteriaScr
         etiqueta: resultado.etiqueta,
         largoM: resultado.a,
         altoM: resultado.b,
+        llevaRepello: resultado.repello,
+        llevaPulido: resultado.pulido,
       ));
       _resultado = null;
     });
@@ -99,70 +102,96 @@ class _CalculadoraMamposteriaScreenState extends State<CalculadoraMamposteriaScr
     required String etiquetaA,
     required String etiquetaB,
     required String etiquetaInicial,
+    bool mostrarAcabados = false,
   }) {
     final nombreController = TextEditingController(text: etiquetaInicial);
     final aController = TextEditingController();
     final bController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    var repello = false;
+    var pulido = false;
 
     return showDialog<_DatosDialogo>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(titulo),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: nombreController,
-                decoration: const InputDecoration(labelText: 'Nombre / referencia'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(titulo),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: nombreController,
+                    decoration: const InputDecoration(labelText: 'Nombre / referencia'),
+                  ),
+                  const SizedBox(height: AppConstants.paddingSm),
+                  TextFormField(
+                    controller: aController,
+                    autofocus: true,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(labelText: etiquetaA),
+                    validator: (v) {
+                      final val = double.tryParse((v ?? '').replaceAll(',', '.'));
+                      if (val == null || val <= 0) return 'Requerido';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: AppConstants.paddingSm),
+                  TextFormField(
+                    controller: bController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(labelText: etiquetaB),
+                    validator: (v) {
+                      final val = double.tryParse((v ?? '').replaceAll(',', '.'));
+                      if (val == null || val <= 0) return 'Requerido';
+                      return null;
+                    },
+                  ),
+                  if (mostrarAcabados) ...[
+                    const Divider(height: AppConstants.paddingLg),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: repello,
+                      onChanged: (v) => setDialogState(() => repello = v),
+                      title: const Text('Lleva repello'),
+                      subtitle: const Text('2 cm de espesor'),
+                    ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: pulido,
+                      onChanged: (v) => setDialogState(() => pulido = v),
+                      title: const Text('Lleva pulido'),
+                      subtitle: const Text('3 a 5 mm de espesor'),
+                    ),
+                  ],
+                ],
               ),
-              const SizedBox(height: AppConstants.paddingSm),
-              TextFormField(
-                controller: aController,
-                autofocus: true,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(labelText: etiquetaA),
-                validator: (v) {
-                  final val = double.tryParse((v ?? '').replaceAll(',', '.'));
-                  if (val == null || val <= 0) return 'Requerido';
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppConstants.paddingSm),
-              TextFormField(
-                controller: bController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(labelText: etiquetaB),
-                validator: (v) {
-                  final val = double.tryParse((v ?? '').replaceAll(',', '.'));
-                  if (val == null || val <= 0) return 'Requerido';
-                  return null;
-                },
-              ),
-            ],
+            ),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+            FilledButton(
+              onPressed: () {
+                if (!formKey.currentState!.validate()) return;
+                Navigator.pop(
+                  context,
+                  _DatosDialogo(
+                    etiqueta: nombreController.text.trim().isEmpty
+                        ? etiquetaInicial
+                        : nombreController.text.trim(),
+                    a: double.parse(aController.text.replaceAll(',', '.')),
+                    b: double.parse(bController.text.replaceAll(',', '.')),
+                    repello: repello,
+                    pulido: pulido,
+                  ),
+                );
+              },
+              child: const Text('Añadir'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-          FilledButton(
-            onPressed: () {
-              if (!formKey.currentState!.validate()) return;
-              Navigator.pop(
-                context,
-                _DatosDialogo(
-                  etiqueta: nombreController.text.trim().isEmpty
-                      ? etiquetaInicial
-                      : nombreController.text.trim(),
-                  a: double.parse(aController.text.replaceAll(',', '.')),
-                  b: double.parse(bController.text.replaceAll(',', '.')),
-                ),
-              );
-            },
-            child: const Text('Añadir'),
-          ),
-        ],
       ),
     );
   }
@@ -203,14 +232,23 @@ class _CalculadoraMamposteriaScreenState extends State<CalculadoraMamposteriaScr
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.outline,
                     )),
-          ..._paredes.map((p) => _TarjetaItem(
-                titulo: p.etiqueta,
-                subtitulo: '${p.largoM.toStringAsFixed(2)} x ${p.altoM.toStringAsFixed(2)} m  ·  ${p.areaM2.toStringAsFixed(2)} m²',
-                onEliminar: () => setState(() {
-                  _paredes.remove(p);
-                  _resultado = null;
-                }),
-              )),
+          ..._paredes.map((p) {
+            final acabados = [
+              if (p.llevaRepello) 'Repello',
+              if (p.llevaPulido) 'Pulido',
+            ].join(' · ');
+            final subtitulo =
+                '${p.largoM.toStringAsFixed(2)} x ${p.altoM.toStringAsFixed(2)} m  ·  ${p.areaM2.toStringAsFixed(2)} m²'
+                '${acabados.isNotEmpty ? '  ·  $acabados' : ''}';
+            return _TarjetaItem(
+              titulo: p.etiqueta,
+              subtitulo: subtitulo,
+              onEliminar: () => setState(() {
+                _paredes.remove(p);
+                _resultado = null;
+              }),
+            );
+          }),
           const SizedBox(height: AppConstants.paddingSm),
           OutlinedButton.icon(
             onPressed: _agregarPared,
@@ -355,7 +393,7 @@ class _CalculadoraMamposteriaScreenState extends State<CalculadoraMamposteriaScr
             ],
           ),
           const SizedBox(height: AppConstants.paddingLg),
-          Text('Mortero de pega', style: Theme.of(context).textTheme.titleSmall),
+          Text('Mortero de pega (y repello)', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: AppConstants.paddingSm),
           ...DosificacionMortero.tabla.map((d) {
             final seleccionada = _dosificacionMortero.proporcion == d.proporcion;
@@ -400,7 +438,15 @@ class _DatosDialogo {
   final String etiqueta;
   final double a;
   final double b;
-  const _DatosDialogo({required this.etiqueta, required this.a, required this.b});
+  final bool repello;
+  final bool pulido;
+  const _DatosDialogo({
+    required this.etiqueta,
+    required this.a,
+    required this.b,
+    this.repello = false,
+    this.pulido = false,
+  });
 }
 
 class _TarjetaItem extends StatelessWidget {
@@ -458,14 +504,23 @@ class _TarjetaResultadoMamposteria extends StatelessWidget {
       buffer.write(' = ${resultado.areaVanosM2.toStringAsFixed(2)} m².');
     }
     buffer.write(' Área neta a levantar: ${resultado.areaNetaM2.toStringAsFixed(2)} m².');
+    if (resultado.areaConRepelloM2 > 0 || resultado.areaConPulidoM2 > 0) {
+      buffer.write(' Acabados: ${resultado.areaConRepelloM2.toStringAsFixed(2)} m² con repello, '
+          '${resultado.areaConPulidoM2.toStringAsFixed(2)} m² con pulido.');
+    }
     return buffer.toString();
   }
 
   List<Map<String, String>> get _filasDetalladas {
     final filas = <Map<String, String>>[];
     for (final p in paredes) {
+      final tags = [
+        if (p.llevaRepello) 'repello',
+        if (p.llevaPulido) 'pulido',
+      ].join('+');
       filas.add({
-        'etiqueta': 'Pared: ${p.etiqueta} (${p.largoM.toStringAsFixed(2)} x ${p.altoM.toStringAsFixed(2)} m)',
+        'etiqueta': 'Pared: ${p.etiqueta} (${p.largoM.toStringAsFixed(2)} x ${p.altoM.toStringAsFixed(2)} m)'
+            '${tags.isNotEmpty ? ' [$tags]' : ''}',
         'valor': '+${p.areaM2.toStringAsFixed(2)} m²',
       });
     }
@@ -486,6 +541,20 @@ class _TarjetaResultadoMamposteria extends StatelessWidget {
       {'etiqueta': 'Cemento', 'valor': '${resultado.sacosCementoMortero.ceil()} sacos de 42.5 kg'},
       {'etiqueta': 'Arena', 'valor': '${resultado.arenaMorteroM3.toStringAsFixed(2)} m³'},
     ]);
+    if (resultado.areaConRepelloM2 > 0) {
+      filas.addAll([
+        {'etiqueta': 'Área con repello', 'valor': '${resultado.areaConRepelloM2.toStringAsFixed(2)} m²'},
+        {'etiqueta': 'Repello mortero', 'valor': '${resultado.repelloMorteroM3.toStringAsFixed(3)} m³'},
+        {'etiqueta': 'Repello cemento', 'valor': '${resultado.repelloSacosCemento.ceil()} sacos de 42.5 kg'},
+        {'etiqueta': 'Repello arena', 'valor': '${resultado.repelloArenaM3.toStringAsFixed(2)} m³'},
+      ]);
+    }
+    if (resultado.areaConPulidoM2 > 0) {
+      filas.addAll([
+        {'etiqueta': 'Área con pulido', 'valor': '${resultado.areaConPulidoM2.toStringAsFixed(2)} m²'},
+        {'etiqueta': 'Pulido cemento', 'valor': '${resultado.pulidoSacosCemento.ceil()} sacos de 42.5 kg'},
+      ]);
+    }
     return filas;
   }
 
@@ -554,6 +623,41 @@ class _TarjetaResultadoMamposteria extends StatelessWidget {
               etiqueta: 'Arena',
               valor: '${resultado.arenaMorteroM3.toStringAsFixed(2)} m³',
             ),
+            if (resultado.areaConRepelloM2 > 0) ...[
+              const Divider(height: AppConstants.paddingLg),
+              Text('Repello (2 cm)', style: Theme.of(context).textTheme.titleSmall),
+              _FilaResultado(
+                icono: Icons.crop_square_outlined,
+                etiqueta: 'Área con repello',
+                valor: '${resultado.areaConRepelloM2.toStringAsFixed(2)} m²',
+              ),
+              _FilaResultado(
+                icono: Icons.inventory_2_outlined,
+                etiqueta: 'Cemento',
+                valor: '${resultado.repelloSacosCemento.ceil()} sacos de 42.5 kg',
+                destacado: true,
+              ),
+              _FilaResultado(
+                icono: Icons.grain,
+                etiqueta: 'Arena',
+                valor: '${resultado.repelloArenaM3.toStringAsFixed(2)} m³',
+              ),
+            ],
+            if (resultado.areaConPulidoM2 > 0) ...[
+              const Divider(height: AppConstants.paddingLg),
+              Text('Pulido (3 a 5 mm)', style: Theme.of(context).textTheme.titleSmall),
+              _FilaResultado(
+                icono: Icons.crop_square_outlined,
+                etiqueta: 'Área con pulido',
+                valor: '${resultado.areaConPulidoM2.toStringAsFixed(2)} m²',
+              ),
+              _FilaResultado(
+                icono: Icons.inventory_2_outlined,
+                etiqueta: 'Cemento (pasta pura)',
+                valor: '${resultado.pulidoSacosCemento.ceil()} sacos de 42.5 kg',
+                destacado: true,
+              ),
+            ],
             const SizedBox(height: AppConstants.paddingMd),
             OutlinedButton.icon(
               onPressed: () => exportarResultadosPdf(
@@ -562,8 +666,11 @@ class _TarjetaResultadoMamposteria extends StatelessWidget {
                 filas: _filasDetalladas.map((f) => FilaPdf(f['etiqueta']!, f['valor']!)).toList(),
                 nota:
                     'Estimación de campo (bloques por m² = 1 / ((largo+junta) x (alto+junta))). '
-                    'El desperdicio se contabiliza aparte del bloque usable. Confirma cantidades finales '
-                    'con el maestro de obra antes de comprar.',
+                    'El desperdicio se contabiliza aparte del bloque usable. El repello usa la misma '
+                    'dosificación de mortero seleccionada, a 2 cm de espesor; el pulido se estima como '
+                    'pasta de cemento pura a razón de 1 saco (42.5 kg) por cada '
+                    '${rendimientoPulidoM2PorSaco.toStringAsFixed(0)} m² (3 a 5 mm). '
+                    'Confirma cantidades finales con el maestro de obra antes de comprar.',
               ),
               icon: const Icon(Icons.picture_as_pdf_outlined),
               label: const Text('Guardar / imprimir como PDF'),
