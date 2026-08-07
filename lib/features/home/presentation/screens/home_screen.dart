@@ -3,6 +3,7 @@ import 'package:structia/core/constants/app_constants.dart';
 import 'package:structia/features/calculadora_acero/presentation/screens/calculadora_acero_screen.dart';
 import 'package:structia/features/calculadora_columna/presentation/screens/calculadora_columna_screen.dart';
 import 'package:structia/features/calculadora_ceramica/presentation/screens/calculadora_ceramica_screen.dart';
+import 'package:structia/features/calculadora_techo/presentation/screens/calculadora_techo_screen.dart';
 import 'package:structia/features/calculadora_concreto/presentation/screens/calculadora_concreto_screen.dart';
 import 'package:structia/features/calculadora_mamposteria/presentation/screens/calculadora_mamposteria_screen.dart';
 import 'package:structia/features/calculadora_viga/presentation/screens/calculadora_viga_screen.dart';
@@ -187,6 +188,15 @@ class HomeScreen extends StatelessWidget {
                     descripcion: 'Piezas y pega según el tamaño, para baño, piso o pared',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const CalculadoraCeramicaScreen()),
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingMd),
+                  _TarjetaCalculadora(
+                    icono: Icons.roofing_outlined,
+                    titulo: 'Techo',
+                    descripcion: 'Láminas, canaleta, caballete y tornillos según los faldones',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const CalculadoraTechoScreen()),
                     ),
                   ),
                   const SizedBox(height: AppConstants.paddingMd),
