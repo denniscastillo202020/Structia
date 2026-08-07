@@ -232,6 +232,7 @@ class _IconoPorTipo extends StatelessWidget {
       'Acero': Icons.grid_4x4,
       'Presupuesto': Icons.payments_outlined,
       'Mampostería': Icons.grid_view_outlined,
+      'Cerámica': Icons.grid_on_outlined,
     };
     return Icon(iconos[tipo] ?? Icons.calculate_outlined);
   }
