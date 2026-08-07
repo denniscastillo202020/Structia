@@ -89,9 +89,9 @@ class _CalculadoraElectricoScreenState extends State<CalculadoraElectricoScreen>
                     autofocus: true,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(
-                      labelText: 'Distancia desde el panel principal',
+                      labelText: 'Distancia de este tramo',
                       suffixText: 'm',
-                      helperText: 'Siguiendo el recorrido real del cableado, no en línea recta',
+                      helperText: 'Desde el punto anterior en la cadena, o desde el panel si es el primero',
                     ),
                     validator: (v) {
                       final val = double.tryParse((v ?? '').replaceAll(',', '.'));

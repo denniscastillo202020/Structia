@@ -25,9 +25,11 @@ extension TipoPuntoInfo on TipoPunto {
   bool get esTomacorriente => this == TipoPunto.tomacorriente;
 }
 
-/// Un punto eléctrico (switch, foco o tomacorriente) con su distancia
-/// en metros desde el panel/tablero principal, siguiendo el recorrido
-/// real del cableado (no la línea recta).
+/// Un punto eléctrico (switch, foco o tomacorriente) con la distancia
+/// del tramo de cableado que le corresponde: desde el punto anterior
+/// en la misma cadena, o desde el panel/tablero si es el primer punto
+/// del circuito. Siguiendo el recorrido real del cableado (no la
+/// línea recta).
 class PuntoElectrico {
   final String id;
   final String etiqueta;
@@ -118,10 +120,11 @@ class ResultadoElectrico {
 }
 
 /// Calcula manguera, abrazaderas, cable, cajas y tornillos para un
-/// conjunto de puntos eléctricos con su distancia al panel.
-/// Estimación de campo — el diseño de circuitos y la protección
-/// (amperaje de breakers) siempre debe confirmarlos un electricista
-/// certificado.
+/// conjunto de puntos eléctricos encadenados (tablero → punto 1 →
+/// punto 2 → ...), donde cada punto trae la distancia de su propio
+/// tramo. Estimación de campo — el diseño de circuitos y la
+/// protección (amperaje de breakers) siempre debe confirmarlos un
+/// electricista certificado.
 class CalcularElectrico {
   ResultadoElectrico call({
     required List<PuntoElectrico> puntos,
@@ -154,7 +157,13 @@ class CalcularElectrico {
         ? (cableTomacorrientes / calibreTomacorrientes.rolloM).ceil()
         : 0;
 
-    final cajasRectangulares = puntos.where((p) => p.tipo.usaCajaRectangular).length;
+    // Cada tomacorriente lleva 2 cajas rectangulares: la del propio
+    // toma y la del empalme de paso hacia el siguiente punto. Los
+    // switches llevan 1 caja rectangular; los focos/lámparas 1 octagonal.
+    final cajasRectangulares = puntos.fold<int>(0, (s, p) {
+      if (!p.tipo.usaCajaRectangular) return s;
+      return s + (p.tipo.esTomacorriente ? 2 : 1);
+    });
     final cajasOctagonales = puntos.where((p) => !p.tipo.usaCajaRectangular).length;
     final tornillosCajas = (cajasRectangulares + cajasOctagonales) * 2;
 
