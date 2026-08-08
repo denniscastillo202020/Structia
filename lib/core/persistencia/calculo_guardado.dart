@@ -14,21 +14,14 @@ class CalculoGuardado {
   final double? arenaM3;
   final double? gravaM3;
   final double? pesoAceroKg;
-  // Varillas comerciales a comprar, agrupadas por diámetro (ej.
-  // {'1/2" (N°4)': 26, '3/8" (N°3)': 10}). Es lo que realmente se
-  // compra en la ferretería — el peso queda solo como referencia.
-  final Map<String, int>? varillasPorDiametro;
   final double? bloquesTotal;
   final double? morteroM3;
   final double? areaNetaM2;
-  final double? volumenExcavacionM3;
-  final double? volumenRellenoM3;
-  // Área de muros con repello y con pulido, POR SEPARADO del área
-  // total de bloques (areaNetaM2), porque no todas las paredes de un
-  // muro llevan acabado — se necesitan aparte para conectar cada una
-  // con su propia línea de mano de obra (Pega de bloque vs. Repello).
-  final double? areaConRepelloM2;
-  final double? areaConPulidoM2;
+
+  /// Varillas COMERCIALES a comprar, agrupadas por diámetro (ej.
+  /// {'1/2" (N°4)': 12, '3/8" (N°3)': 8}). Así se compra en obra en
+  /// Honduras: por cantidad de varillas de cada calibre, no por peso.
+  final Map<String, int>? varillasPorDiametro;
 
   const CalculoGuardado({
     required this.id,
@@ -42,14 +35,10 @@ class CalculoGuardado {
     this.arenaM3,
     this.gravaM3,
     this.pesoAceroKg,
-    this.varillasPorDiametro,
     this.bloquesTotal,
     this.morteroM3,
     this.areaNetaM2,
-    this.volumenExcavacionM3,
-    this.volumenRellenoM3,
-    this.areaConRepelloM2,
-    this.areaConPulidoM2,
+    this.varillasPorDiametro,
   });
 
   Map<String, dynamic> toJson() => {
@@ -64,14 +53,10 @@ class CalculoGuardado {
         'arenaM3': arenaM3,
         'gravaM3': gravaM3,
         'pesoAceroKg': pesoAceroKg,
-        'varillasPorDiametro': varillasPorDiametro,
         'bloquesTotal': bloquesTotal,
         'morteroM3': morteroM3,
         'areaNetaM2': areaNetaM2,
-        'volumenExcavacionM3': volumenExcavacionM3,
-        'volumenRellenoM3': volumenRellenoM3,
-        'areaConRepelloM2': areaConRepelloM2,
-        'areaConPulidoM2': areaConPulidoM2,
+        'varillasPorDiametro': varillasPorDiametro,
       };
 
   factory CalculoGuardado.fromJson(Map<String, dynamic> json) {
@@ -89,15 +74,11 @@ class CalculoGuardado {
       arenaM3: (json['arenaM3'] as num?)?.toDouble(),
       gravaM3: (json['gravaM3'] as num?)?.toDouble(),
       pesoAceroKg: (json['pesoAceroKg'] as num?)?.toDouble(),
-      varillasPorDiametro: (json['varillasPorDiametro'] as Map?)
-          ?.map((k, v) => MapEntry(k as String, (v as num).toInt())),
       bloquesTotal: (json['bloquesTotal'] as num?)?.toDouble(),
       morteroM3: (json['morteroM3'] as num?)?.toDouble(),
       areaNetaM2: (json['areaNetaM2'] as num?)?.toDouble(),
-      volumenExcavacionM3: (json['volumenExcavacionM3'] as num?)?.toDouble(),
-      volumenRellenoM3: (json['volumenRellenoM3'] as num?)?.toDouble(),
-      areaConRepelloM2: (json['areaConRepelloM2'] as num?)?.toDouble(),
-      areaConPulidoM2: (json['areaConPulidoM2'] as num?)?.toDouble(),
+      varillasPorDiametro: (json['varillasPorDiametro'] as Map?)
+          ?.map((k, v) => MapEntry(k as String, (v as num).toInt())),
     );
   }
 }

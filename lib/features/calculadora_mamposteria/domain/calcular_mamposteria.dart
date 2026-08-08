@@ -26,10 +26,11 @@ class TipoBloque {
 }
 
 /// Fila de la tabla práctica de dosificación de mortero de pega
-/// (cemento : arena, en volumen). Igual que la tabla de concreto,
-/// es una guía de campo para obra menor y mediana — la proporción
-/// definitiva depende de la arena disponible en la zona. La misma
-/// dosificación seleccionada aquí se reutiliza para el repello.
+/// (cemento : arena, en volumen). Rendimiento calibrado con datos de
+/// campo reales de obra en Honduras. Igual que la tabla de concreto,
+/// es una guía de campo — la proporción definitiva depende de la
+/// arena disponible en la zona y no reemplaza el criterio del
+/// maestro de obra.
 class DosificacionMortero {
   final String proporcion; // Cemento : Arena, en volumen
   final double bolsasCementoPorM3;
@@ -48,55 +49,43 @@ class DosificacionMortero {
   static const List<DosificacionMortero> tabla = [
     DosificacionMortero(
       proporcion: '1 : 3',
-      bolsasCementoPorM3: 11.4,
+      bolsasCementoPorM3: 9.52,
       arenaM3PorM3: 0.98,
       usoTypico: 'Pega de mayor resistencia (muros de carga, zonas sísmicas)',
     ),
     DosificacionMortero(
       proporcion: '1 : 4',
-      bolsasCementoPorM3: 8.8,
+      bolsasCementoPorM3: 7.41,
       arenaM3PorM3: 1.05,
       usoTypico: 'Pega de bloque estándar (uso general)',
     ),
     DosificacionMortero(
       proporcion: '1 : 5',
-      bolsasCementoPorM3: 7.2,
+      bolsasCementoPorM3: 6.06,
       arenaM3PorM3: 1.10,
       usoTypico: 'Muros divisorios livianos, sin carga',
+    ),
+    DosificacionMortero(
+      proporcion: '1 : 6',
+      bolsasCementoPorM3: 5.13,
+      arenaM3PorM3: 1.15,
+      usoTypico: 'Repello y trabajos livianos sin exigencia estructural',
     ),
   ];
 }
 
-/// Espesor estándar de la capa de repello (aplanado), fijo a 2 cm
-/// como es práctica común de obra.
-const double espesorRepelloM = 0.02;
-
-/// Rendimiento estimado del pulido (planchado fino, 3 a 5 mm de
-/// espesor, promedio 4 mm): cuántos m² cubre un saco de cemento de
-/// 42.5 kg en pasta pura. Es una cifra de campo — ajústala según tu
-/// experiencia si tu mezcla/mano de obra rinde distinto.
-const double rendimientoPulidoM2PorSaco = 8.0;
-
 /// Un tramo de pared que el usuario va añadiendo a la lista.
-/// [llevaRepello] y [llevaPulido] se marcan por pared, ya que no
-/// todas las paredes de un proyecto llevan acabado (p. ej. paredes
-/// que quedarán cubiertas por cerámica, o muros perimetrales sin
-/// terminar).
 class Pared {
   final String id;
   final String etiqueta;
   final double largoM;
   final double altoM;
-  final bool llevaRepello;
-  final bool llevaPulido;
 
   const Pared({
     required this.id,
     required this.etiqueta,
     required this.largoM,
     required this.altoM,
-    this.llevaRepello = false,
-    this.llevaPulido = false,
   });
 
   double get areaM2 => largoM * altoM;
@@ -138,17 +127,6 @@ class ResultadoMamposteria {
   final double sacosCementoMortero;
   final double arenaMorteroM3;
 
-  // Repello y pulido: solo sobre las paredes marcadas con el switch
-  // correspondiente (área tal cual la pared, sin descuento de vanos
-  // por pared individual, ya que los vanos no están ligados a una
-  // pared específica en este modelo — descuéntalos a mano si aplica).
-  final double areaConRepelloM2;
-  final double areaConPulidoM2;
-  final double repelloMorteroM3;
-  final double repelloSacosCemento;
-  final double repelloArenaM3;
-  final double pulidoSacosCemento;
-
   const ResultadoMamposteria({
     required this.areaBrutaM2,
     required this.areaVanosM2,
@@ -162,20 +140,13 @@ class ResultadoMamposteria {
     required this.morteroTotalM3,
     required this.sacosCementoMortero,
     required this.arenaMorteroM3,
-    required this.areaConRepelloM2,
-    required this.areaConPulidoM2,
-    required this.repelloMorteroM3,
-    required this.repelloSacosCemento,
-    required this.repelloArenaM3,
-    required this.pulidoSacosCemento,
   });
 }
 
 /// Calcula bloques y mortero necesarios para levantar un conjunto de
 /// paredes, descontando puertas/ventanas, y contabilizando el
 /// desperdicio (roturas, cortes) SIEMPRE por separado del bloque
-/// usable — nunca mezclado en una sola cifra. También calcula el
-/// repello y pulido de las paredes marcadas con esos acabados.
+/// usable — nunca mezclado en una sola cifra.
 ///
 /// Fórmula de referencia usada en presupuestos de obra (estimación
 /// de campo, no sustituye el criterio del maestro de obra):
@@ -220,15 +191,6 @@ class CalcularMamposteria {
     final bloquesNetosUnidades = bloquesNetos.ceil();
     final bloquesDesperdicioUnidades = bloquesDesperdicio.ceil();
 
-    // Repello y pulido, solo sobre las paredes marcadas.
-    final areaConRepello = paredes.where((p) => p.llevaRepello).fold(0.0, (s, p) => s + p.areaM2);
-    final areaConPulido = paredes.where((p) => p.llevaPulido).fold(0.0, (s, p) => s + p.areaM2);
-
-    final repelloMortero = areaConRepello * espesorRepelloM;
-    final repelloCemento = repelloMortero * dosificacionMortero.bolsasCementoPorM3;
-    final repelloArena = repelloMortero * dosificacionMortero.arenaM3PorM3;
-    final pulidoCemento = areaConPulido / rendimientoPulidoM2PorSaco;
-
     return ResultadoMamposteria(
       areaBrutaM2: areaBruta,
       areaVanosM2: areaVanos,
@@ -242,12 +204,6 @@ class CalcularMamposteria {
       morteroTotalM3: morteroTotal,
       sacosCementoMortero: morteroTotal * dosificacionMortero.bolsasCementoPorM3,
       arenaMorteroM3: morteroTotal * dosificacionMortero.arenaM3PorM3,
-      areaConRepelloM2: areaConRepello,
-      areaConPulidoM2: areaConPulido,
-      repelloMorteroM3: repelloMortero,
-      repelloSacosCemento: repelloCemento,
-      repelloArenaM3: repelloArena,
-      pulidoSacosCemento: pulidoCemento,
     );
   }
 }

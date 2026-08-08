@@ -17,15 +17,17 @@ void main() {
       expect(resultado.desperdicioTotalM, closeTo(6.0, 0.001));
     });
 
-    test('combina piezas pequeñas en la misma varilla cuando caben juntas', () {
+    test('cada pieza consume SU PROPIA varilla, aunque varias cabrían juntas', () {
+      // Así se compra en obra: 3 piezas de 3m = 3 varillas completas
+      // (una por pieza), NO 1 varilla combinando los 3 cortes.
       final resultado = calcular(
         tramos: [const TramoRequerido(longitudM: 3.0, cantidad: 3)],
         diametro: DiametroVarilla.n4,
         longitudComercialM: 9.0,
       );
 
-      expect(resultado.varillasComercialesNecesarias, 1);
-      expect(resultado.desperdicioTotalM, closeTo(0.0, 0.001));
+      expect(resultado.varillasComercialesNecesarias, 3);
+      expect(resultado.desperdicioTotalM, closeTo(18.0, 0.001)); // 3 x 6m de retazo
     });
   });
 
@@ -77,10 +79,10 @@ void main() {
       expect(resultado.traslapesNecesarios, greaterThanOrEqualTo(1));
     });
 
-    test('los retazos de un traslape pueden reutilizarse para otras piezas pequeñas', () {
-      // Un tramo de 13m deja un segundo segmento de 5m en una varilla de 9m
-      // (sobran 4m) — una pieza suelta de 3m debería poder compartir esa
-      // misma varilla en vez de abrir una varilla nueva.
+    test('el retazo de un traslape NO se reutiliza para otras piezas separadas', () {
+      // Un tramo de 13m necesita 2 varillas (9m + 5m con traslape).
+      // El tramo de 3m es una pieza aparte: consume SU PROPIA varilla,
+      // sin importar que sobre espacio en la varilla del traslape.
       final resultado = calcular(
         tramos: [
           const TramoRequerido(longitudM: 13.0, cantidad: 1),
@@ -91,9 +93,8 @@ void main() {
         longitudTraslapeM: 1.0,
       );
 
-      // Sin reaprovechar: 2 varillas para el tramo de 13m + 1 varilla para
-      // el de 3m = 3. Reaprovechando el retazo, deben bastar 2.
-      expect(resultado.varillasComercialesNecesarias, 2);
+      // 2 varillas para el tramo de 13m + 1 varilla dedicada para el de 3m = 3.
+      expect(resultado.varillasComercialesNecesarias, 3);
     });
   });
 }

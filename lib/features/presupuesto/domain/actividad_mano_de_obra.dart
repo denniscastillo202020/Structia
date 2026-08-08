@@ -23,7 +23,6 @@ class ActividadManoDeObra {
     ActividadManoDeObra(nombre: 'Fundición de solera', precioReferenciaL: 350, unidad: 'm lineal'),
     ActividadManoDeObra(nombre: 'Fundición de castillo', precioReferenciaL: 350, unidad: 'm lineal'),
     ActividadManoDeObra(nombre: 'Fundición de firme', precioReferenciaL: 300, unidad: 'm²'),
-    ActividadManoDeObra(nombre: 'Fundición de losa (tubo, lámina y malla)', precioReferenciaL: 450, unidad: 'm²'),
     ActividadManoDeObra(nombre: 'Repello/Tallado y pulido en boquetes', precioReferenciaL: 120, unidad: 'm lineal'),
     ActividadManoDeObra(nombre: 'Repello/Tallado y pulido general', precioReferenciaL: 150, unidad: 'm²'),
     ActividadManoDeObra(nombre: 'Solera de cierre', precioReferenciaL: 450, unidad: 'm lineal'),

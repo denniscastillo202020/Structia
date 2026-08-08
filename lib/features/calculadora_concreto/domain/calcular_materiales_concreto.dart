@@ -1,16 +1,17 @@
 /// Fila de la tabla práctica de dosificación de concreto, por
-/// resistencia a compresión (f'c). Basada en tablas de referencia de
-/// uso común en ingeniería civil para obra menor y mediana (proporción
-/// en volumen, cantidades por m³ de concreto ya compactado), en línea
-/// con los criterios del método ACI 211.1 para diseño de mezclas
-/// normales. Bolsa de cemento de referencia: 42.5 kg.
+/// resistencia a compresión (f'c). Rendimiento (m³ de concreto por
+/// saco de cemento) calibrado con datos de campo reales de obra en
+/// Honduras, no solo la tabla teórica de laboratorio.
+/// Bolsa de cemento de referencia: 42.5 kg.
 ///
-/// IMPORTANTE: esta tabla es una guía práctica de campo. Para
-/// elementos estructurales que exijan una resistencia garantizada
-/// (columnas, vigas, losas de un diseño formal), la dosificación
-/// definitiva debe confirmarse con un diseño de mezcla de laboratorio
-/// y el criterio de un ingeniero estructural — los agregados varían
-/// de una cantera a otra y eso cambia las proporciones reales.
+/// IMPORTANTE: esta es una dosificación ESTIMADA de campo, no un
+/// diseño estructural certificado. La resistencia del concreto no
+/// depende solo de la cantidad de cemento — la relación agua/cemento
+/// y la calidad/granulometría de los agregados (que varían de una
+/// cantera a otra) son igual de determinantes. Para elementos
+/// estructurales que exijan una resistencia garantizada, la
+/// dosificación definitiva debe confirmarse con un diseño de mezcla
+/// de laboratorio y el criterio de un ingeniero estructural.
 class DosificacionConcreto {
   final int fc; // kg/cm²
   final String proporcion; // Cemento : Arena : Piedra, en volumen
@@ -36,9 +37,9 @@ class DosificacionConcreto {
 
   static const List<DosificacionConcreto> tabla = [
     DosificacionConcreto(
-      fc: 140,
+      fc: 150,
       proporcion: '1 : 2.5 : 3.5',
-      bolsasCementoPorM3: 7.01,
+      bolsasCementoPorM3: 6.90,
       arenaM3PorM3: 0.51,
       gravaM3PorM3: 0.54,
       aguaLitrosPorM3: 184,
@@ -46,9 +47,9 @@ class DosificacionConcreto {
       usoTypico: 'Solera de pobre, rellenos, contrapisos sin carga',
     ),
     DosificacionConcreto(
-      fc: 175,
+      fc: 180,
       proporcion: '1 : 2.5 : 2.5',
-      bolsasCementoPorM3: 8.43,
+      bolsasCementoPorM3: 7.41,
       arenaM3PorM3: 0.54,
       gravaM3PorM3: 0.55,
       aguaLitrosPorM3: 185,
@@ -58,7 +59,7 @@ class DosificacionConcreto {
     DosificacionConcreto(
       fc: 210,
       proporcion: '1 : 2 : 2',
-      bolsasCementoPorM3: 9.73,
+      bolsasCementoPorM3: 8.20,
       arenaM3PorM3: 0.52,
       gravaM3PorM3: 0.53,
       aguaLitrosPorM3: 186,
@@ -66,9 +67,9 @@ class DosificacionConcreto {
       usoTypico: 'Zapatas, vigas, columnas y losas de vivienda (uso general)',
     ),
     DosificacionConcreto(
-      fc: 245,
+      fc: 250,
       proporcion: '1 : 1.5 : 1.5',
-      bolsasCementoPorM3: 11.5,
+      bolsasCementoPorM3: 8.93,
       arenaM3PorM3: 0.50,
       gravaM3PorM3: 0.51,
       aguaLitrosPorM3: 187,
@@ -76,9 +77,9 @@ class DosificacionConcreto {
       usoTypico: 'Elementos con mayor exigencia de carga',
     ),
     DosificacionConcreto(
-      fc: 280,
+      fc: 300,
       proporcion: '1 : 1 : 1.5',
-      bolsasCementoPorM3: 13.34,
+      bolsasCementoPorM3: 9.71,
       arenaM3PorM3: 0.45,
       gravaM3PorM3: 0.51,
       aguaLitrosPorM3: 189,

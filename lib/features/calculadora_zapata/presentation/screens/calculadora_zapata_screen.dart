@@ -357,6 +357,11 @@ class _TarjetaResultadoAislada extends StatelessWidget {
                     {'etiqueta': 'Cemento', 'valor': '${materiales.bolsasCemento.ceil()} sacos de 42.5 kg'},
                     {'etiqueta': 'Cama X', 'valor': '${datos.cantidadBarrasDireccionX} x ${datos.diametroCama.etiqueta}'},
                     {'etiqueta': 'Cama Y', 'valor': '${datos.cantidadBarrasDireccionY} x ${datos.diametroCama.etiqueta}'},
+                    {
+                      'etiqueta': 'Varillas COMERCIALES a comprar',
+                      'valor':
+                          '${resultado.aceroDireccionX.varillasComercialesNecesarias + resultado.aceroDireccionY.varillasComercialesNecesarias} de ${datos.diametroCama.etiqueta}',
+                    },
                   ],
                 ));
                 if (context.mounted) {
@@ -654,13 +659,6 @@ class _TarjetaResultadoCorrida extends StatelessWidget {
             FilledButton.tonalIcon(
               onPressed: () async {
                 final pesoTotal = resultado.aceroLongitudinal.pesoCompradoKg + resultado.aceroTransversal.pesoCompradoKg;
-                final varillasPorDiametro = <String, int>{};
-                varillasPorDiametro[datos.diametroLongitudinal.etiqueta] =
-                    (varillasPorDiametro[datos.diametroLongitudinal.etiqueta] ?? 0) +
-                        resultado.aceroLongitudinal.varillasComercialesNecesarias;
-                varillasPorDiametro[datos.diametroTransversal.etiqueta] =
-                    (varillasPorDiametro[datos.diametroTransversal.etiqueta] ?? 0) +
-                        resultado.aceroTransversal.varillasComercialesNecesarias;
                 await RepositorioCalculosGuardados.guardar(CalculoGuardado(
                   id: DateTime.now().microsecondsSinceEpoch.toString(),
                   tipo: 'Zapata',
@@ -672,10 +670,26 @@ class _TarjetaResultadoCorrida extends StatelessWidget {
                   arenaM3: materiales.arenaM3,
                   gravaM3: materiales.gravaM3,
                   pesoAceroKg: pesoTotal,
-                  varillasPorDiametro: varillasPorDiametro,
+                  varillasPorDiametro: {
+                    datos.diametroLongitudinal.etiqueta:
+                        (datos.diametroLongitudinal.etiqueta == datos.diametroTransversal.etiqueta
+                            ? resultado.aceroLongitudinal.varillasComercialesNecesarias +
+                                resultado.aceroTransversal.varillasComercialesNecesarias
+                            : resultado.aceroLongitudinal.varillasComercialesNecesarias),
+                    if (datos.diametroLongitudinal.etiqueta != datos.diametroTransversal.etiqueta)
+                      datos.diametroTransversal.etiqueta: resultado.aceroTransversal.varillasComercialesNecesarias,
+                  },
                   filas: [
                     {'etiqueta': 'Volumen de concreto', 'valor': '${resultado.volumenConcretoM3.toStringAsFixed(2)} m³'},
                     {'etiqueta': 'Cemento', 'valor': '${materiales.bolsasCemento.ceil()} sacos de 42.5 kg'},
+                    {
+                      'etiqueta': 'Varillas longitudinal COMERCIALES',
+                      'valor': '${resultado.aceroLongitudinal.varillasComercialesNecesarias} de ${datos.diametroLongitudinal.etiqueta}',
+                    },
+                    {
+                      'etiqueta': 'Varillas bastones COMERCIALES',
+                      'valor': '${resultado.aceroTransversal.varillasComercialesNecesarias} de ${datos.diametroTransversal.etiqueta}',
+                    },
                     {'etiqueta': 'Peso total de acero', 'valor': '${pesoTotal.toStringAsFixed(2)} kg'},
                   ],
                 ));

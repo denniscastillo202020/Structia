@@ -3,7 +3,29 @@ import 'package:structia/core/constants/app_constants.dart';
 import 'package:structia/core/pdf/exportar_pdf.dart';
 import 'package:structia/core/persistencia/calculo_guardado.dart';
 import 'package:structia/core/persistencia/repositorio_calculos_guardados.dart';
+import 'package:structia/features/calculadora_acero/domain/calcular_acero.dart';
 import 'package:structia/features/importar_ocr/presentation/screens/importar_captura_screen.dart';
+
+/// Suma los mapas {etiqueta_diametro: cantidad} de varillas COMERCIALES
+/// de todos los cálculos guardados, y los devuelve ordenados de menor
+/// a mayor diámetro (3/8", 1/2", 5/8"...) — el orden en que se piden
+/// en la ferretería.
+List<MapEntry<String, int>> _totalVarillasPorDiametro(List<CalculoGuardado> calculos) {
+  final totales = <String, int>{};
+  for (final c in calculos) {
+    c.varillasPorDiametro?.forEach((etiqueta, cantidad) {
+      totales[etiqueta] = (totales[etiqueta] ?? 0) + cantidad;
+    });
+  }
+  final ordenados = <MapEntry<String, int>>[];
+  for (final d in DiametroVarilla.values) {
+    final cantidad = totales[d.etiqueta];
+    if (cantidad != null && cantidad > 0) {
+      ordenados.add(MapEntry(d.etiqueta, cantidad));
+    }
+  }
+  return ordenados;
+}
 
 class CalculosGuardadosScreen extends StatefulWidget {
   const CalculosGuardadosScreen({super.key});
@@ -95,21 +117,11 @@ class _CalculosGuardadosScreenState extends State<CalculosGuardadosScreen> {
           final totalBolsas = calculos.fold(0.0, (s, c) => s + (c.bolsasCemento ?? 0));
           final totalArena = calculos.fold(0.0, (s, c) => s + (c.arenaM3 ?? 0));
           final totalGrava = calculos.fold(0.0, (s, c) => s + (c.gravaM3 ?? 0));
+          final totalAcero = calculos.fold(0.0, (s, c) => s + (c.pesoAceroKg ?? 0));
+          final totalVarillas = _totalVarillasPorDiametro(calculos);
           final totalBloques = calculos.fold(0.0, (s, c) => s + (c.bloquesTotal ?? 0));
           final totalMortero = calculos.fold(0.0, (s, c) => s + (c.morteroM3 ?? 0));
           final totalAreaMuros = calculos.fold(0.0, (s, c) => s + (c.areaNetaM2 ?? 0));
-
-          // Varillas comerciales totales del proyecto, agrupadas por
-          // diámetro — esto es lo que realmente se compra en la
-          // ferretería, no el peso.
-          final Map<String, int> totalVarillasPorDiametro = {};
-          for (final c in calculos) {
-            c.varillasPorDiametro?.forEach((diametro, cantidad) {
-              totalVarillasPorDiametro[diametro] =
-                  (totalVarillasPorDiametro[diametro] ?? 0) + cantidad;
-            });
-          }
-          final diametrosOrdenados = totalVarillasPorDiametro.keys.toList()..sort();
 
           return ListView(
             padding: const EdgeInsets.all(AppConstants.paddingMd),
@@ -129,9 +141,14 @@ class _CalculosGuardadosScreenState extends State<CalculosGuardadosScreen> {
                         _FilaTotal('Cemento', '${totalBolsas.ceil()} sacos de 42.5 kg'),
                       if (totalArena > 0) _FilaTotal('Arena', '${totalArena.toStringAsFixed(2)} m³'),
                       if (totalGrava > 0) _FilaTotal('Grava', '${totalGrava.toStringAsFixed(2)} m³'),
-                      for (final diametro in diametrosOrdenados)
-                        _FilaTotal('Acero $diametro',
-                            '${totalVarillasPorDiametro[diametro]} varillas'),
+                      if (totalVarillas.isNotEmpty)
+                        ...totalVarillas.map(
+                          (e) => _FilaTotal('Varillas ${e.key}', '${e.value} unidades'),
+                        )
+                      else if (totalAcero > 0)
+                        _FilaTotal('Acero', '${totalAcero.toStringAsFixed(2)} kg'),
+                      if (totalAcero > 0 && totalVarillas.isNotEmpty)
+                        _FilaTotal('Peso total de acero', '${totalAcero.toStringAsFixed(2)} kg'),
                       if (totalBloques > 0) _FilaTotal('Bloques', '${totalBloques.ceil()} unidades'),
                       if (totalMortero > 0) _FilaTotal('Mortero', '${totalMortero.toStringAsFixed(2)} m³'),
                       if (totalAreaMuros > 0)
@@ -147,9 +164,14 @@ class _CalculosGuardadosScreenState extends State<CalculosGuardadosScreen> {
                               FilaPdf('Cemento total', '${totalBolsas.ceil()} sacos de 42.5 kg'),
                             if (totalArena > 0) FilaPdf('Arena total', '${totalArena.toStringAsFixed(2)} m³'),
                             if (totalGrava > 0) FilaPdf('Grava total', '${totalGrava.toStringAsFixed(2)} m³'),
-                            for (final diametro in diametrosOrdenados)
-                              FilaPdf('Acero $diametro',
-                                  '${totalVarillasPorDiametro[diametro]} varillas'),
+                            if (totalVarillas.isNotEmpty)
+                              ...totalVarillas.map(
+                                (e) => FilaPdf('Varillas ${e.key}', '${e.value} unidades'),
+                              )
+                            else if (totalAcero > 0)
+                              FilaPdf('Acero total', '${totalAcero.toStringAsFixed(2)} kg'),
+                            if (totalAcero > 0 && totalVarillas.isNotEmpty)
+                              FilaPdf('Peso total de acero', '${totalAcero.toStringAsFixed(2)} kg'),
                             if (totalBloques > 0) FilaPdf('Bloques total', '${totalBloques.ceil()} unidades'),
                             if (totalMortero > 0) FilaPdf('Mortero total', '${totalMortero.toStringAsFixed(2)} m³'),
                             if (totalAreaMuros > 0)
@@ -247,8 +269,6 @@ class _IconoPorTipo extends StatelessWidget {
       'Acero': Icons.grid_4x4,
       'Presupuesto': Icons.payments_outlined,
       'Mampostería': Icons.grid_view_outlined,
-      'Cerámica': Icons.grid_on_outlined,
-      'Techo': Icons.roofing_outlined,
     };
     return Icon(iconos[tipo] ?? Icons.calculate_outlined);
   }

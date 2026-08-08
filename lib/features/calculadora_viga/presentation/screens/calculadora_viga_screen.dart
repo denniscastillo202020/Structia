@@ -177,8 +177,8 @@ class _CalculadoraVigaScreenState extends State<CalculadoraVigaScreen> {
                     controller: _luzController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(
-                      labelText: 'Largo total de la viga',
-                      helperText: 'Longitud completa de la viga, de extremo a extremo',
+                      labelText: 'Largo de la viga (luz libre)',
+                      helperText: 'Distancia entre columnas/apoyos',
                       suffixText: 'm',
                     ),
                     validator: (v) =>
@@ -487,7 +487,7 @@ class _TarjetaResultadoViga extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: () => exportarResultadosPdf(
                 titulo: 'Viga ${datos.anchoCm.toStringAsFixed(0)}x${datos.peralteCm.toStringAsFixed(0)} cm',
-                subtitulo: 'Largo ${datos.luzM.toStringAsFixed(2)} m · ${datos.tipoApoyo.etiqueta} · ${datos.cantidadVigas} viga(s) igual(es)',
+                subtitulo: 'Luz ${datos.luzM.toStringAsFixed(2)} m · ${datos.tipoApoyo.etiqueta} · ${datos.cantidadVigas} viga(s) igual(es)',
                 filas: [
                   FilaPdf('Volumen de concreto', '${resultado.volumenConcretoM3.toStringAsFixed(2)} m³'),
                   FilaPdf("f'c", "${dosificacion.fc} kg/cm²"),
@@ -531,33 +531,42 @@ class _TarjetaResultadoViga extends StatelessWidget {
                   id: DateTime.now().microsecondsSinceEpoch.toString(),
                   tipo: 'Viga',
                   titulo: 'Viga ${datos.anchoCm.toStringAsFixed(0)}x${datos.peralteCm.toStringAsFixed(0)} cm',
-                  subtitulo: '${datos.cantidadVigas} unidad(es) · largo ${datos.luzM.toStringAsFixed(2)} m',
+                  subtitulo: '${datos.cantidadVigas} unidad(es) · luz ${datos.luzM.toStringAsFixed(2)} m',
                   fecha: DateTime.now(),
                   volumenConcretoM3: resultado.volumenConcretoM3,
                   bolsasCemento: materiales.bolsasCemento,
                   arenaM3: materiales.arenaM3,
                   gravaM3: materiales.gravaM3,
                   pesoAceroKg: pesoAceroTotal,
-                  varillasPorDiametro: (() {
+                  varillasPorDiametro: () {
                     final mapa = <String, int>{};
-                    mapa[datos.diametroSuperior.etiqueta] =
-                        (mapa[datos.diametroSuperior.etiqueta] ?? 0) +
-                            resultado.aceroSuperior.varillasComercialesNecesarias;
-                    mapa[datos.diametroInferior.etiqueta] =
-                        (mapa[datos.diametroInferior.etiqueta] ?? 0) +
-                            resultado.aceroInferior.varillasComercialesNecesarias;
-                    mapa[datos.diametroEstribo.etiqueta] =
-                        (mapa[datos.diametroEstribo.etiqueta] ?? 0) +
-                            resultado.aceroEstribos.varillasComercialesNecesarias;
+                    void sumar(String etiqueta, int cantidad) {
+                      mapa[etiqueta] = (mapa[etiqueta] ?? 0) + cantidad;
+                    }
+                    sumar(datos.diametroSuperior.etiqueta, resultado.aceroSuperior.varillasComercialesNecesarias);
+                    sumar(datos.diametroInferior.etiqueta, resultado.aceroInferior.varillasComercialesNecesarias);
+                    sumar(datos.diametroEstribo.etiqueta, resultado.aceroEstribos.varillasComercialesNecesarias);
                     return mapa;
-                  })(),
+                  }(),
                   filas: [
                     {'etiqueta': 'Volumen de concreto', 'valor': '${resultado.volumenConcretoM3.toStringAsFixed(2)} m³'},
                     {'etiqueta': 'Cemento', 'valor': '${materiales.bolsasCemento.ceil()} sacos de 42.5 kg'},
                     {'etiqueta': 'Arena', 'valor': '${materiales.arenaM3.toStringAsFixed(2)} m³'},
                     {'etiqueta': 'Grava', 'valor': '${materiales.gravaM3.toStringAsFixed(2)} m³'},
                     {'etiqueta': 'Acero superior', 'valor': '${datos.diametroSuperior.etiqueta} x ${datos.cantidadVarillasSuperiores * datos.cantidadVigas}'},
+                    {
+                      'etiqueta': 'Varillas superior COMERCIALES',
+                      'valor': '${resultado.aceroSuperior.varillasComercialesNecesarias} de ${datos.diametroSuperior.etiqueta}',
+                    },
                     {'etiqueta': 'Acero inferior', 'valor': '${datos.diametroInferior.etiqueta} x ${datos.cantidadVarillasInferiores * datos.cantidadVigas}'},
+                    {
+                      'etiqueta': 'Varillas inferior COMERCIALES',
+                      'valor': '${resultado.aceroInferior.varillasComercialesNecesarias} de ${datos.diametroInferior.etiqueta}',
+                    },
+                    {
+                      'etiqueta': 'Varillas estribos COMERCIALES',
+                      'valor': '${resultado.aceroEstribos.varillasComercialesNecesarias} de ${datos.diametroEstribo.etiqueta}',
+                    },
                     {'etiqueta': 'Peso total de acero', 'valor': '${pesoAceroTotal.toStringAsFixed(2)} kg'},
                   ],
                 ));

@@ -65,16 +65,20 @@ class ResultadoCorteAcero {
 /// Calcula cuántas varillas comerciales hay que comprar para cubrir
 /// una lista de tramos requeridos.
 ///
-/// Dos reglas clave, según cómo se trabaja realmente en obra:
+/// Así se trabaja realmente en obra en Honduras: cada varilla
+/// comercial mide 9 m, sin excepción. Cada pieza que se necesita
+/// colocar (una varilla de columna, de viga, un estribo, etc.)
+/// consume SU PROPIA varilla comercial completa — el retazo que
+/// sobra de cortarla es desperdicio real, y NO se junta ni se
+/// reutiliza con el retazo de otra pieza distinta, aunque ambos
+/// retazos alcanzarían para cubrir algo si se sumaran. Comprar así
+/// (una varilla por pieza) es como realmente se pide en la
+/// ferretería, no optimizando cortes entre piezas.
 ///
-/// 1. Si un tramo es más largo que la varilla comercial, se divide en
-///    segmentos empalmados: cada unión consume una longitud extra de
-///    traslape (el acero ahí queda doblado, no es "desperdicio" pero
-///    sí material adicional que hay que comprar).
-/// 2. Los retazos que sobran de cortar cualquier pieza (incluyendo
-///    los segmentos de un traslape) quedan disponibles para cubrir
-///    OTRAS piezas de la lista — solo se cuenta como desperdicio real
-///    lo que, al final, no alcanzó para ninguna pieza pendiente.
+/// Excepción: si un tramo es más largo que una varilla comercial (9
+/// m), no cabe en una sola pieza — ahí sí hace falta empalmar dos o
+/// más varillas con un traslape (la unión doblada). Ese traslape es
+/// material adicional que se debe comprar, no desperdicio.
 class CalcularAcero {
   ResultadoCorteAcero call({
     required List<TramoRequerido> tramos,
@@ -84,8 +88,8 @@ class CalcularAcero {
   }) {
     final traslape = longitudTraslapeM ?? diametro.traslapeSugeridoM;
 
-    // 1) Expande cada tramo en las piezas físicas que hay que cortar,
-    //    dividiendo con traslape los que no caben en una sola varilla.
+    // Expande cada tramo en las piezas físicas que hay que cortar,
+    // dividiendo con traslape los que no caben en una sola varilla.
     final piezas = <double>[];
     var traslapesNecesarios = 0;
 
@@ -121,36 +125,19 @@ class CalcularAcero {
       }
     }
 
-    // 2) Empaqueta todas las piezas (incluyendo las de los traslapes)
-    //    en la menor cantidad de varillas comerciales posible,
-    //    reutilizando retazos entre piezas distintas.
-    piezas.sort((a, b) => b.compareTo(a));
-    final espacioRestantePorVarilla = <double>[];
-
-    for (final pieza in piezas) {
-      int? mejorIndice;
-      double mejorEspacio = double.infinity;
-      for (var i = 0; i < espacioRestantePorVarilla.length; i++) {
-        final espacio = espacioRestantePorVarilla[i];
-        if (espacio >= pieza && espacio < mejorEspacio) {
-          mejorEspacio = espacio;
-          mejorIndice = i;
-        }
-      }
-
-      if (mejorIndice != null) {
-        espacioRestantePorVarilla[mejorIndice] -= pieza;
-      } else {
-        espacioRestantePorVarilla.add(longitudComercialM - pieza);
-      }
-    }
+    // Cada pieza generada (por construcción, siempre <= longitudComercialM)
+    // consume UNA varilla comercial dedicada. Sin empaquetado ni
+    // reutilización de retazos entre piezas distintas.
+    final varillasNecesarias = piezas.length;
+    final desperdicioTotal = piezas.fold(
+      0.0,
+      (suma, pieza) => suma + (longitudComercialM - pieza),
+    );
 
     final longitudUtilTotal = tramos.fold(
       0.0,
       (suma, t) => suma + t.longitudM * t.cantidad,
     );
-    final varillasNecesarias = espacioRestantePorVarilla.length;
-    final desperdicioTotal = espacioRestantePorVarilla.fold(0.0, (suma, e) => suma + e);
     final pesoComprado = varillasNecesarias * longitudComercialM * diametro.kgPorMetro;
     final pesoUtil = longitudUtilTotal * diametro.kgPorMetro;
 

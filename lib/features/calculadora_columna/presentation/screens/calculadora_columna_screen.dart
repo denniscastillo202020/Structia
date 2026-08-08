@@ -397,13 +397,13 @@ class _TarjetaResultadoColumna extends StatelessWidget {
                   gravaM3: materiales.gravaM3,
                   pesoAceroKg: resultado.aceroLongitudinal.pesoCompradoKg + resultado.aceroEstribos.pesoCompradoKg,
                   varillasPorDiametro: {
-                    for (final entry in <String, int>{
-                      datos.diametroLongitudinal.etiqueta:
-                          resultado.aceroLongitudinal.varillasComercialesNecesarias,
-                      datos.diametroEstribo.etiqueta:
-                          resultado.aceroEstribos.varillasComercialesNecesarias,
-                    }.entries)
-                      entry.key: entry.value
+                    datos.diametroLongitudinal.etiqueta:
+                        (datos.diametroLongitudinal.etiqueta == datos.diametroEstribo.etiqueta
+                            ? resultado.aceroLongitudinal.varillasComercialesNecesarias +
+                                resultado.aceroEstribos.varillasComercialesNecesarias
+                            : resultado.aceroLongitudinal.varillasComercialesNecesarias),
+                    if (datos.diametroLongitudinal.etiqueta != datos.diametroEstribo.etiqueta)
+                      datos.diametroEstribo.etiqueta: resultado.aceroEstribos.varillasComercialesNecesarias,
                   },
                   filas: [
                     {'etiqueta': 'Volumen de concreto', 'valor': '${resultado.volumenConcretoM3.toStringAsFixed(2)} m³'},
@@ -411,8 +411,16 @@ class _TarjetaResultadoColumna extends StatelessWidget {
                     {'etiqueta': 'Arena', 'valor': '${materiales.arenaM3.toStringAsFixed(2)} m³'},
                     {'etiqueta': 'Grava', 'valor': '${materiales.gravaM3.toStringAsFixed(2)} m³'},
                     {'etiqueta': 'Acero longitudinal', 'valor': '${datos.diametroLongitudinal.etiqueta} x ${datos.cantidadVarillasLongitudinales * datos.cantidadColumnas}'},
+                    {
+                      'etiqueta': 'Varillas longitudinal COMERCIALES',
+                      'valor': '${resultado.aceroLongitudinal.varillasComercialesNecesarias} de ${datos.diametroLongitudinal.etiqueta}',
+                    },
                     {'etiqueta': 'Peso longitudinal', 'valor': '${resultado.aceroLongitudinal.pesoCompradoKg.toStringAsFixed(2)} kg'},
                     {'etiqueta': 'Estribos', 'valor': '${resultado.cantidadEstribosPorColumna} x columna, ${datos.diametroEstribo.etiqueta}'},
+                    {
+                      'etiqueta': 'Varillas estribos COMERCIALES',
+                      'valor': '${resultado.aceroEstribos.varillasComercialesNecesarias} de ${datos.diametroEstribo.etiqueta}',
+                    },
                     {'etiqueta': 'Peso estribos', 'valor': '${resultado.aceroEstribos.pesoCompradoKg.toStringAsFixed(2)} kg'},
                   ],
                 ));

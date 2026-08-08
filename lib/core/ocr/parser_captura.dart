@@ -3,8 +3,8 @@ import 'linea_ocr.dart';
 
 /// Prefijos con los que la app arma el título de cada tipo de cálculo al
 /// tocar "Guardar en mi proyecto" (ver cada `_guardar...` en las
-/// calculadoras), y también los títulos de cada pantalla de resultado
-/// (AppBar), para reconocer capturas tomadas directo del resultado.
+/// calculadoras). Se usan para detectar dónde empieza cada tarjeta dentro
+/// de una captura y para adivinar el `tipo`.
 const _prefijosTipo = <String, String>{
   'zapata aislada': 'Zapata',
   'zapata corrida': 'Zapata',
@@ -12,7 +12,6 @@ const _prefijosTipo = <String, String>{
   'columna': 'Columna',
   'viga': 'Viga',
   'muros': 'Mampostería',
-  'costos y mano de obra': 'Presupuesto',
   'presupuesto': 'Presupuesto',
   'acero': 'Acero',
   'materiales de concreto': 'Concreto',
@@ -20,12 +19,10 @@ const _prefijosTipo = <String, String>{
 };
 
 /// Líneas que casi siempre son ruido de la interfaz (hora, batería, señal,
-/// título de la lista de guardados, flecha de volver) y no aportan datos.
-/// OJO: los títulos de cada pantalla de calculadora (Zapatas, Columnas,
-/// Vigas, Muros y bloques, Acero de refuerzo, Costos y mano de obra) NO
-/// van aquí porque _tipoDesdeTitulo los necesita para reconocer el bloque.
+/// título de la pantalla, flecha de volver) y no aportan datos.
 final _lineasRuido = RegExp(
-  r'^(mis c[aá]lculos guardados|[0-9]{1,2}:[0-9]{2}( ?[ap]\.?m\.?)?|'
+  r'^(mis c[aá]lculos guardados|muros y bloques|columnas|vigas|zapatas|'
+  r'costos y mano de obra|acero de refuerzo|[0-9]{1,2}:[0-9]{2}( ?[ap]\.?m\.?)?|'
   r'[0-9]{1,3} ?%|wifi|←|<)$',
   caseSensitive: false,
 );
