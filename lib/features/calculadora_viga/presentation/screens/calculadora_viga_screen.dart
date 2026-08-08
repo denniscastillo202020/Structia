@@ -538,6 +538,19 @@ class _TarjetaResultadoViga extends StatelessWidget {
                   arenaM3: materiales.arenaM3,
                   gravaM3: materiales.gravaM3,
                   pesoAceroKg: pesoAceroTotal,
+                  varillasPorDiametro: (() {
+                    final mapa = <String, int>{};
+                    mapa[datos.diametroSuperior.etiqueta] =
+                        (mapa[datos.diametroSuperior.etiqueta] ?? 0) +
+                            resultado.aceroSuperior.varillasComercialesNecesarias;
+                    mapa[datos.diametroInferior.etiqueta] =
+                        (mapa[datos.diametroInferior.etiqueta] ?? 0) +
+                            resultado.aceroInferior.varillasComercialesNecesarias;
+                    mapa[datos.diametroEstribo.etiqueta] =
+                        (mapa[datos.diametroEstribo.etiqueta] ?? 0) +
+                            resultado.aceroEstribos.varillasComercialesNecesarias;
+                    return mapa;
+                  })(),
                   filas: [
                     {'etiqueta': 'Volumen de concreto', 'valor': '${resultado.volumenConcretoM3.toStringAsFixed(2)} m³'},
                     {'etiqueta': 'Cemento', 'valor': '${materiales.bolsasCemento.ceil()} sacos de 42.5 kg'},
