@@ -347,6 +347,11 @@ class _TarjetaResultadoAislada extends StatelessWidget {
                   arenaM3: materiales.arenaM3,
                   gravaM3: materiales.gravaM3,
                   pesoAceroKg: resultado.aceroDireccionX.pesoCompradoKg + resultado.aceroDireccionY.pesoCompradoKg,
+                  varillasPorDiametro: {
+                    datos.diametroCama.etiqueta:
+                        resultado.aceroDireccionX.varillasComercialesNecesarias +
+                            resultado.aceroDireccionY.varillasComercialesNecesarias,
+                  },
                   filas: [
                     {'etiqueta': 'Volumen de concreto', 'valor': '${resultado.volumenConcretoM3.toStringAsFixed(2)} m³'},
                     {'etiqueta': 'Cemento', 'valor': '${materiales.bolsasCemento.ceil()} sacos de 42.5 kg'},
@@ -649,6 +654,13 @@ class _TarjetaResultadoCorrida extends StatelessWidget {
             FilledButton.tonalIcon(
               onPressed: () async {
                 final pesoTotal = resultado.aceroLongitudinal.pesoCompradoKg + resultado.aceroTransversal.pesoCompradoKg;
+                final varillasPorDiametro = <String, int>{};
+                varillasPorDiametro[datos.diametroLongitudinal.etiqueta] =
+                    (varillasPorDiametro[datos.diametroLongitudinal.etiqueta] ?? 0) +
+                        resultado.aceroLongitudinal.varillasComercialesNecesarias;
+                varillasPorDiametro[datos.diametroTransversal.etiqueta] =
+                    (varillasPorDiametro[datos.diametroTransversal.etiqueta] ?? 0) +
+                        resultado.aceroTransversal.varillasComercialesNecesarias;
                 await RepositorioCalculosGuardados.guardar(CalculoGuardado(
                   id: DateTime.now().microsecondsSinceEpoch.toString(),
                   tipo: 'Zapata',
@@ -660,6 +672,7 @@ class _TarjetaResultadoCorrida extends StatelessWidget {
                   arenaM3: materiales.arenaM3,
                   gravaM3: materiales.gravaM3,
                   pesoAceroKg: pesoTotal,
+                  varillasPorDiametro: varillasPorDiametro,
                   filas: [
                     {'etiqueta': 'Volumen de concreto', 'valor': '${resultado.volumenConcretoM3.toStringAsFixed(2)} m³'},
                     {'etiqueta': 'Cemento', 'valor': '${materiales.bolsasCemento.ceil()} sacos de 42.5 kg'},
