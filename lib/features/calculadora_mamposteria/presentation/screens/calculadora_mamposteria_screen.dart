@@ -687,6 +687,8 @@ class _TarjetaResultadoMamposteria extends StatelessWidget {
                   bloquesTotal: resultado.bloquesTotalComprar.toDouble(),
                   morteroM3: resultado.morteroTotalM3,
                   areaNetaM2: resultado.areaNetaM2,
+                  areaConRepelloM2: resultado.areaConRepelloM2 > 0 ? resultado.areaConRepelloM2 : null,
+                  areaConPulidoM2: resultado.areaConPulidoM2 > 0 ? resultado.areaConPulidoM2 : null,
                   bolsasCemento: resultado.sacosCementoMortero,
                   arenaM3: resultado.arenaMorteroM3,
                   filas: _filasDetalladas,

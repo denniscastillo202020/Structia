@@ -19,6 +19,12 @@ class CalculoGuardado {
   final double? areaNetaM2;
   final double? volumenExcavacionM3;
   final double? volumenRellenoM3;
+  // Área de muros con repello y con pulido, POR SEPARADO del área
+  // total de bloques (areaNetaM2), porque no todas las paredes de un
+  // muro llevan acabado — se necesitan aparte para conectar cada una
+  // con su propia línea de mano de obra (Pega de bloque vs. Repello).
+  final double? areaConRepelloM2;
+  final double? areaConPulidoM2;
 
   const CalculoGuardado({
     required this.id,
@@ -37,6 +43,8 @@ class CalculoGuardado {
     this.areaNetaM2,
     this.volumenExcavacionM3,
     this.volumenRellenoM3,
+    this.areaConRepelloM2,
+    this.areaConPulidoM2,
   });
 
   Map<String, dynamic> toJson() => {
@@ -56,6 +64,8 @@ class CalculoGuardado {
         'areaNetaM2': areaNetaM2,
         'volumenExcavacionM3': volumenExcavacionM3,
         'volumenRellenoM3': volumenRellenoM3,
+        'areaConRepelloM2': areaConRepelloM2,
+        'areaConPulidoM2': areaConPulidoM2,
       };
 
   factory CalculoGuardado.fromJson(Map<String, dynamic> json) {
@@ -78,6 +88,8 @@ class CalculoGuardado {
       areaNetaM2: (json['areaNetaM2'] as num?)?.toDouble(),
       volumenExcavacionM3: (json['volumenExcavacionM3'] as num?)?.toDouble(),
       volumenRellenoM3: (json['volumenRellenoM3'] as num?)?.toDouble(),
+      areaConRepelloM2: (json['areaConRepelloM2'] as num?)?.toDouble(),
+      areaConPulidoM2: (json['areaConPulidoM2'] as num?)?.toDouble(),
     );
   }
 }
