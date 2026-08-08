@@ -8,6 +8,7 @@ import 'package:structia/features/calculadora_concreto/presentation/screens/calc
 import 'package:structia/features/calculadora_mamposteria/presentation/screens/calculadora_mamposteria_screen.dart';
 import 'package:structia/features/calculadora_viga/presentation/screens/calculadora_viga_screen.dart';
 import 'package:structia/features/calculadora_zapata/presentation/screens/calculadora_zapata_screen.dart';
+import 'package:structia/features/calculadora_losa/presentation/screens/calculadora_losa_screen.dart';
 import 'package:structia/features/calculadora_excavacion/presentation/screens/calculadora_excavacion_screen.dart';
 import 'package:structia/features/calculadora_electrico/presentation/screens/calculadora_electrico_screen.dart';
 import 'package:structia/features/calculadora_cielo_pvc/presentation/screens/calculadora_cielo_pvc_screen.dart';
@@ -155,6 +156,15 @@ class HomeScreen extends StatelessWidget {
                     descripcion: 'Concreto + acero longitudinal y estribos, con vista seccionada',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const CalculadoraColumnaScreen()),
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingMd),
+                  _TarjetaCalculadora(
+                    icono: Icons.grid_on_outlined,
+                    titulo: 'Losa con lámina y tubo',
+                    descripcion: 'Tubo (vigueta), lámina aluzín, malla electrosoldada, tornillos y concreto',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const CalculadoraLosaScreen()),
                     ),
                   ),
                   const SizedBox(height: AppConstants.paddingMd),

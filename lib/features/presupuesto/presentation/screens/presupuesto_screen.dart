@@ -40,6 +40,9 @@ class _PresupuestoScreenState extends State<PresupuestoScreen> {
   double? _volumenExcavacionGuardadoM3;
   double? _volumenRellenoGuardadoM3;
 
+  // --- Área calculada en "Losa con lámina y tubo" ---
+  double? _areaLosaGuardadaM2;
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +53,15 @@ class _PresupuestoScreenState extends State<PresupuestoScreen> {
         ActividadManoDeObra.tabla.map((_) => TextEditingController()).toList();
     _cargarAreaMuros();
     _cargarExcavacion();
+    _cargarAreaLosa();
+  }
+
+  Future<void> _cargarAreaLosa() async {
+    final calculos = await RepositorioCalculosGuardados.listar();
+    final total = calculos
+        .where((c) => c.tipo == 'Losa')
+        .fold(0.0, (s, c) => s + (c.areaNetaM2 ?? 0));
+    if (mounted) setState(() => _areaLosaGuardadaM2 = total > 0 ? total : null);
   }
 
   Future<void> _cargarAreaMuros() async {
@@ -87,6 +99,9 @@ class _PresupuestoScreenState extends State<PresupuestoScreen> {
 
   int get _indiceActividadRelleno =>
       ActividadManoDeObra.tabla.indexWhere((a) => a.nombre == 'Relleno');
+
+  int get _indiceActividadLosa =>
+      ActividadManoDeObra.tabla.indexWhere((a) => a.nombre.startsWith('Fundición de losa'));
 
   void _usarValorEnIndice(int indice, double? valor) {
     if (indice == -1 || valor == null) return;
@@ -241,6 +256,7 @@ class _PresupuestoScreenState extends State<PresupuestoScreen> {
             final esRepello = i == _indiceActividadRepello;
             final esExcavacion = i == _indiceActividadExcavacion;
             final esRelleno = i == _indiceActividadRelleno;
+            final esLosa = i == _indiceActividadLosa;
             return Card(
               child: Padding(
                 padding: const EdgeInsets.all(AppConstants.paddingSm),
@@ -273,6 +289,15 @@ class _PresupuestoScreenState extends State<PresupuestoScreen> {
                         label: Text(
                             'Usar volumen de "Excavación": ${_volumenRellenoGuardadoM3!.toStringAsFixed(2)} m³'),
                         onPressed: () => _usarValorEnIndice(i, _volumenRellenoGuardadoM3),
+                      ),
+                    ],
+                    if (esLosa && _areaLosaGuardadaM2 != null) ...[
+                      const SizedBox(height: 4),
+                      ActionChip(
+                        avatar: const Icon(Icons.grid_on_outlined, size: 16),
+                        label: Text(
+                            'Usar área de "Losa": ${_areaLosaGuardadaM2!.toStringAsFixed(2)} m²'),
+                        onPressed: () => _usarValorEnIndice(i, _areaLosaGuardadaM2),
                       ),
                     ],
                     const SizedBox(height: 6),
