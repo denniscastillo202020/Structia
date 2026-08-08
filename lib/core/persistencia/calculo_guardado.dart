@@ -14,6 +14,10 @@ class CalculoGuardado {
   final double? arenaM3;
   final double? gravaM3;
   final double? pesoAceroKg;
+  // Varillas comerciales a comprar, agrupadas por diámetro (ej.
+  // {'1/2" (N°4)': 26, '3/8" (N°3)': 10}). Es lo que realmente se
+  // compra en la ferretería — el peso queda solo como referencia.
+  final Map<String, int>? varillasPorDiametro;
   final double? bloquesTotal;
   final double? morteroM3;
   final double? areaNetaM2;
@@ -38,6 +42,7 @@ class CalculoGuardado {
     this.arenaM3,
     this.gravaM3,
     this.pesoAceroKg,
+    this.varillasPorDiametro,
     this.bloquesTotal,
     this.morteroM3,
     this.areaNetaM2,
@@ -59,6 +64,7 @@ class CalculoGuardado {
         'arenaM3': arenaM3,
         'gravaM3': gravaM3,
         'pesoAceroKg': pesoAceroKg,
+        'varillasPorDiametro': varillasPorDiametro,
         'bloquesTotal': bloquesTotal,
         'morteroM3': morteroM3,
         'areaNetaM2': areaNetaM2,
@@ -83,6 +89,8 @@ class CalculoGuardado {
       arenaM3: (json['arenaM3'] as num?)?.toDouble(),
       gravaM3: (json['gravaM3'] as num?)?.toDouble(),
       pesoAceroKg: (json['pesoAceroKg'] as num?)?.toDouble(),
+      varillasPorDiametro: (json['varillasPorDiametro'] as Map?)
+          ?.map((k, v) => MapEntry(k as String, (v as num).toInt())),
       bloquesTotal: (json['bloquesTotal'] as num?)?.toDouble(),
       morteroM3: (json['morteroM3'] as num?)?.toDouble(),
       areaNetaM2: (json['areaNetaM2'] as num?)?.toDouble(),
