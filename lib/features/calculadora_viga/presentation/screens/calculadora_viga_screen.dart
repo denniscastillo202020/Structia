@@ -177,8 +177,8 @@ class _CalculadoraVigaScreenState extends State<CalculadoraVigaScreen> {
                     controller: _luzController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(
-                      labelText: 'Largo de la viga (luz libre)',
-                      helperText: 'Distancia entre columnas/apoyos',
+                      labelText: 'Largo total de la viga',
+                      helperText: 'Longitud completa de la viga, de extremo a extremo',
                       suffixText: 'm',
                     ),
                     validator: (v) =>
@@ -487,7 +487,7 @@ class _TarjetaResultadoViga extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: () => exportarResultadosPdf(
                 titulo: 'Viga ${datos.anchoCm.toStringAsFixed(0)}x${datos.peralteCm.toStringAsFixed(0)} cm',
-                subtitulo: 'Luz ${datos.luzM.toStringAsFixed(2)} m · ${datos.tipoApoyo.etiqueta} · ${datos.cantidadVigas} viga(s) igual(es)',
+                subtitulo: 'Largo ${datos.luzM.toStringAsFixed(2)} m · ${datos.tipoApoyo.etiqueta} · ${datos.cantidadVigas} viga(s) igual(es)',
                 filas: [
                   FilaPdf('Volumen de concreto', '${resultado.volumenConcretoM3.toStringAsFixed(2)} m³'),
                   FilaPdf("f'c", "${dosificacion.fc} kg/cm²"),
@@ -531,7 +531,7 @@ class _TarjetaResultadoViga extends StatelessWidget {
                   id: DateTime.now().microsecondsSinceEpoch.toString(),
                   tipo: 'Viga',
                   titulo: 'Viga ${datos.anchoCm.toStringAsFixed(0)}x${datos.peralteCm.toStringAsFixed(0)} cm',
-                  subtitulo: '${datos.cantidadVigas} unidad(es) · luz ${datos.luzM.toStringAsFixed(2)} m',
+                  subtitulo: '${datos.cantidadVigas} unidad(es) · largo ${datos.luzM.toStringAsFixed(2)} m',
                   fecha: DateTime.now(),
                   volumenConcretoM3: resultado.volumenConcretoM3,
                   bolsasCemento: materiales.bolsasCemento,
