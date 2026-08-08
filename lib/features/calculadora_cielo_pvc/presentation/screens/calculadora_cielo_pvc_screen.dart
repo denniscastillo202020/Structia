@@ -140,7 +140,6 @@ class _CalculadoraCieloPvcScreenState extends State<CalculadoraCieloPvcScreen> {
     }
     final desperdicio = _num(_desperdicioController.text);
     if (desperdicio == null || desperdicio < 0) return;
-
     final resultado = CalcularCieloPvc()(
       ambientes: _ambientes,
       porcentajeDesperdicio: desperdicio,
@@ -254,13 +253,24 @@ class _TarjetaResultadoCieloPvc extends StatelessWidget {
         'valor': '${resultado.cornisaUnidades} unidad(es) (5.95 m c/u)',
       },
       {
+        'etiqueta': 'Ángulo perimetral',
+        'valor': '${resultado.anguloUnidades} unidad(es) (3.00 m c/u)',
+      },
+      {
         'etiqueta': 'Furring channel (omega)',
         'valor': '${resultado.metrosOmega.toStringAsFixed(1)} m'
             ' · cada ${resultado.espaciadoOmegaM.toStringAsFixed(2)} m',
       },
-      {'etiqueta': 'Tornillos — tablillas', 'valor': resultado.tornillosTablillas.toString()},
-      {'etiqueta': 'Tornillos — omega', 'valor': resultado.tornillosOmega.toString()},
+      {
+        'etiqueta': 'Viguetas metálicas',
+        'valor': '${resultado.viguetaUnidades} unidad(es) (3.66 m c/u) '
+            '· ${resultado.metrosVigueta.toStringAsFixed(1)} m',
+      },
+      {'etiqueta': 'Tornillos — tablillas (cabeza lenteja)', 'valor': resultado.tornillosTablillas.toString()},
+      {'etiqueta': 'Tornillos — omega a vigueta', 'valor': resultado.amarresOmegaVigueta.toString()},
       {'etiqueta': 'Tornillos — cornisa', 'valor': resultado.tornillosCornisa.toString()},
+      {'etiqueta': 'Tarugos/puntillas — ángulo a pared', 'valor': resultado.fijacionesAngulo.toString()},
+      {'etiqueta': 'Total tornillos/fijaciones', 'valor': resultado.tornillosTotal.toString()},
     ];
     return filas;
   }
@@ -339,11 +349,11 @@ class _TarjetaResultadoCieloPvc extends StatelessWidget {
                     '${resultado.areaTotalM2.toStringAsFixed(1)} m² totales',
                 filas: _filasDetalladas.map((f) => FilaPdf(f['etiqueta']!, f['valor']!)).toList(),
                 nota: 'Estimación de campo de materiales para cielo falso de PVC (tablilla 20 cm '
-                    'útil × 5.95 m, cornisa 5.95 m, omega cada '
-                    '${resultado.espaciadoOmegaM.toStringAsFixed(2)} m). Las medidas comerciales '
-                    'exactas varían según marca y proveedor — confírmalas antes de comprar. La '
-                    'estructura de colgado (canal U, tensores) debe dimensionarla el instalador '
-                    'según el techo/cercha real.',
+                    'útil × 5.95 m, cornisa y ángulo perimetral, omega cada '
+                    '${resultado.espaciadoOmegaM.toStringAsFixed(2)} m, viguetas metálicas de 3.66 m). '
+                    'Las medidas comerciales exactas varían según marca y proveedor — confírmalas '
+                    'antes de comprar. La estructura de colgado (canal U, tensores) debe '
+                    'dimensionarla el instalador según el techo/cercha real.',
               ),
               icon: const Icon(Icons.picture_as_pdf_outlined),
               label: const Text('Guardar / imprimir como PDF'),
@@ -356,7 +366,7 @@ class _TarjetaResultadoCieloPvc extends StatelessWidget {
                   tipo: 'Cielo falso PVC',
                   titulo: 'Cielo PVC ${resultado.areaTotalM2.toStringAsFixed(1)} m²',
                   subtitulo:
-                      '${resultado.tablillasNecesarias} tablillas · ${resultado.cornisaUnidades} cornisas',
+                      '${resultado.tablillasNecesarias} tablillas · ${resultado.cornisaUnidades} cornisas · ${resultado.viguetaUnidades} viguetas',
                   fecha: DateTime.now(),
                   filas: _filasDetalladas,
                 ));
