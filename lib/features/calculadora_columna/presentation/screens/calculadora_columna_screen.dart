@@ -396,6 +396,15 @@ class _TarjetaResultadoColumna extends StatelessWidget {
                   arenaM3: materiales.arenaM3,
                   gravaM3: materiales.gravaM3,
                   pesoAceroKg: resultado.aceroLongitudinal.pesoCompradoKg + resultado.aceroEstribos.pesoCompradoKg,
+                  varillasPorDiametro: {
+                    for (final entry in <String, int>{
+                      datos.diametroLongitudinal.etiqueta:
+                          resultado.aceroLongitudinal.varillasComercialesNecesarias,
+                      datos.diametroEstribo.etiqueta:
+                          resultado.aceroEstribos.varillasComercialesNecesarias,
+                    }.entries)
+                      entry.key: entry.value
+                  },
                   filas: [
                     {'etiqueta': 'Volumen de concreto', 'valor': '${resultado.volumenConcretoM3.toStringAsFixed(2)} m³'},
                     {'etiqueta': 'Cemento', 'valor': '${materiales.bolsasCemento.ceil()} sacos de 42.5 kg'},
