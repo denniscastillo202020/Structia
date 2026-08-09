@@ -7,6 +7,7 @@ import 'package:structia/features/calculadora_mamposteria/presentation/screens/c
 import 'package:structia/features/calculadora_viga/presentation/screens/calculadora_viga_screen.dart';
 import 'package:structia/features/calculadora_zapata/presentation/screens/calculadora_zapata_screen.dart';
 import 'package:structia/features/guardados/presentation/screens/calculos_guardados_screen.dart';
+import 'package:structia/features/importar_ocr/presentation/screens/importar_captura_screen.dart';
 import 'package:structia/features/presupuesto/presentation/screens/presupuesto_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -102,6 +103,15 @@ class HomeScreen extends StatelessWidget {
             descripcion: 'Honorarios de planificación y presupuesto de mano de obra por actividad',
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const PresupuestoScreen()),
+            ),
+          ),
+          const SizedBox(height: AppConstants.paddingMd),
+          _TarjetaCalculadora(
+            icono: Icons.document_scanner_outlined,
+            titulo: 'Recuperar desde capturas',
+            descripcion: 'Sube capturas de cotizaciones o cálculos anteriores y recréalos automáticamente',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ImportarCapturaScreen()),
             ),
           ),
           const SizedBox(height: AppConstants.paddingLg),
