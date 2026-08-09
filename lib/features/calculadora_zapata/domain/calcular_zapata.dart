@@ -20,6 +20,7 @@ class DatosZapataCorrida {
   final DiametroVarilla diametroLongitudinal;
   final int cantidadVarillasLongitudinales;
   final DiametroVarilla diametroTransversal;
+  final double longitudBastonCm;
   final double separacionTransversalCm;
   final int cantidadZapatas;
 
@@ -31,6 +32,7 @@ class DatosZapataCorrida {
     required this.diametroLongitudinal,
     required this.cantidadVarillasLongitudinales,
     required this.diametroTransversal,
+    required this.longitudBastonCm,
     required this.separacionTransversalCm,
     this.cantidadZapatas = 1,
   });
@@ -65,7 +67,7 @@ class CalcularZapataCorrida {
       diametro: datos.diametroLongitudinal,
     );
 
-    final longitudBastonM = (datos.anchoCm - 2 * datos.recubrimientoCm) / 100;
+    final longitudBastonM = datos.longitudBastonCm / 100;
     final cantidadBastonesPorZapata =
         ((datos.longitudTotalM * 100) / datos.separacionTransversalCm).ceil() + 1;
 

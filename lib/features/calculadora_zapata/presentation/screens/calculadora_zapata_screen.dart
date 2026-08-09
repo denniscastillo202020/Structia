@@ -396,6 +396,7 @@ class _FormularioCorridaState extends State<_FormularioCorrida> {
   final _profundidadController = TextEditingController(text: '30');
   final _recubrimientoController = TextEditingController(text: '7.5');
   final _cantidadVarillasController = TextEditingController(text: '3');
+  final _longitudBastonController = TextEditingController(text: '35');
   final _separacionTransversalController = TextEditingController(text: '20');
   final _cantidadController = TextEditingController(text: '1');
 
@@ -413,6 +414,7 @@ class _FormularioCorridaState extends State<_FormularioCorrida> {
     _profundidadController.dispose();
     _recubrimientoController.dispose();
     _cantidadVarillasController.dispose();
+    _longitudBastonController.dispose();
     _separacionTransversalController.dispose();
     _cantidadController.dispose();
     super.dispose();
@@ -424,6 +426,7 @@ class _FormularioCorridaState extends State<_FormularioCorrida> {
     final profundidad = double.tryParse(_profundidadController.text.replaceAll(',', '.'));
     final recubrimiento = double.tryParse(_recubrimientoController.text.replaceAll(',', '.'));
     final cantidadVarillas = int.tryParse(_cantidadVarillasController.text);
+    final longitudBaston = double.tryParse(_longitudBastonController.text.replaceAll(',', '.'));
     final separacionTransversal = double.tryParse(_separacionTransversalController.text.replaceAll(',', '.'));
     final cantidad = int.tryParse(_cantidadController.text) ?? 1;
 
@@ -432,6 +435,7 @@ class _FormularioCorridaState extends State<_FormularioCorrida> {
         profundidad == null ||
         recubrimiento == null ||
         cantidadVarillas == null ||
+        longitudBaston == null ||
         separacionTransversal == null) {
       return null;
     }
@@ -444,6 +448,7 @@ class _FormularioCorridaState extends State<_FormularioCorrida> {
       diametroLongitudinal: _diametroLongitudinal,
       cantidadVarillasLongitudinales: cantidadVarillas,
       diametroTransversal: _diametroTransversal,
+      longitudBastonCm: longitudBaston,
       separacionTransversalCm: separacionTransversal,
       cantidadZapatas: cantidad,
     );
@@ -557,6 +562,17 @@ class _FormularioCorridaState extends State<_FormularioCorrida> {
                 onSelected: (_) => setState(() => _diametroTransversal = d),
               );
             }).toList(),
+          ),
+          const SizedBox(height: AppConstants.paddingSm),
+          TextFormField(
+            controller: _longitudBastonController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Medida de cada bastón',
+              suffixText: 'cm',
+              helperText: 'Longitud de cada pedazo transversal cortado de la varilla comercial',
+            ),
+            validator: (v) => double.tryParse((v ?? '').replaceAll(',', '.')) == null ? 'Requerido' : null,
           ),
           const SizedBox(height: AppConstants.paddingSm),
           TextFormField(
