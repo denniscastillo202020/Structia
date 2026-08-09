@@ -6,6 +6,8 @@ import 'package:structia/features/calculadora_acero/presentation/screens/calcula
 import 'package:structia/features/calculadora_columna/presentation/screens/calculadora_columna_screen.dart';
 import 'package:structia/features/calculadora_concreto/presentation/screens/calculadora_concreto_screen.dart';
 import 'package:structia/features/calculadora_losa/presentation/screens/calculadora_losa_screen.dart';
+import 'package:structia/features/calculadora_firme/presentation/screens/calculadora_firme_screen.dart';
+import 'package:structia/features/calculadora_poso_septico/presentation/screens/calculadora_poso_septico_screen.dart';
 import 'package:structia/features/calculadora_mamposteria/presentation/screens/calculadora_mamposteria_screen.dart';
 import 'package:structia/features/calculadora_viga/presentation/screens/calculadora_viga_screen.dart';
 import 'package:structia/features/calculadora_zapata/presentation/screens/calculadora_zapata_screen.dart';
@@ -155,6 +157,24 @@ class _HomeScreenState extends State<HomeScreen> {
             descripcion: 'Suma paredes, resta puertas/ventanas y calcula bloques y mortero, con el desperdicio aparte',
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const CalculadoraMamposteriaScreen()),
+            ),
+          ),
+          const SizedBox(height: AppConstants.paddingMd),
+          _TarjetaCalculadora(
+            icono: Icons.square_foot_outlined,
+            titulo: 'Firme (contrapiso)',
+            descripcion: 'Concreto y malla electrosoldada opcional para el firme',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const CalculadoraFirmeScreen()),
+            ),
+          ),
+          const SizedBox(height: AppConstants.paddingMd),
+          _TarjetaCalculadora(
+            icono: Icons.water_damage_outlined,
+            titulo: 'Pozo séptico',
+            descripcion: 'Bloque, mortero, refuerzo vertical y tapadera de concreto armada',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const CalculadoraPosoSepticoScreen()),
             ),
           ),
           const SizedBox(height: AppConstants.paddingMd),
