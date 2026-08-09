@@ -309,7 +309,7 @@ class _TarjetaResultadoLosa extends StatelessWidget {
       },
       {
         'etiqueta': 'Malla electrosoldada',
-        'valor': '${resultado.mallaHojas} hoja(s) (2.20 × 6.00 m)',
+        'valor': '${resultado.mallaHojas} hoja(s) (2.30 × 6.00 m)',
       },
       {'etiqueta': 'Tornillos', 'valor': resultado.tornillos.toString()},
       {

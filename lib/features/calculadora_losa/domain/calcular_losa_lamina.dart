@@ -41,8 +41,8 @@ class AmbienteLosa {
 /// proveedor — confirma las medidas exactas antes de comprar.
 class ConstantesLosa {
   static const double largoComercialTuboM = 6.0;
-  static const double anchoUtilLaminaM = 0.95;
-  static const double anchoHojaMallaM = 2.20;
+  static const double anchoUtilLaminaM = 0.90;
+  static const double anchoHojaMallaM = 2.30;
   static const double largoHojaMallaM = 6.00;
   static const double espaciadoTornillosM = 0.30; // a lo largo de cada tubo
 }
