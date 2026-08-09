@@ -154,13 +154,9 @@ class CalcularColumna {
     final perimetroEstriboCm = 2 * (anchoInterno + profundidadInterna) + 10;
     final perimetroEstriboM = perimetroEstriboCm / 100;
 
-    final aceroEstribos = CalcularAcero()(
-      tramos: [
-        TramoRequerido(
-          longitudM: perimetroEstriboM,
-          cantidad: cantidadEstribosPorColumna * cantidadTotal,
-        ),
-      ],
+    final aceroEstribos = CalcularAcero().calcularPiezasCortas(
+      longitudPiezaM: perimetroEstriboM,
+      cantidadPiezas: cantidadEstribosPorColumna * cantidadTotal,
       diametro: datos.diametroEstribo,
     );
 

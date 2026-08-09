@@ -128,13 +128,9 @@ class CalcularViga {
     final perimetroEstriboCm = 2 * (anchoInterno + peralteInterno) + 10;
     final perimetroEstriboM = perimetroEstriboCm / 100;
 
-    final aceroEstribos = CalcularAcero()(
-      tramos: [
-        TramoRequerido(
-          longitudM: perimetroEstriboM,
-          cantidad: cantidadEstribosPorViga * cantidadTotal,
-        ),
-      ],
+    final aceroEstribos = CalcularAcero().calcularPiezasCortas(
+      longitudPiezaM: perimetroEstriboM,
+      cantidadPiezas: cantidadEstribosPorViga * cantidadTotal,
       diametro: datos.diametroEstribo,
     );
 

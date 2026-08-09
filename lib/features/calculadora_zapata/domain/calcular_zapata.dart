@@ -69,13 +69,9 @@ class CalcularZapataCorrida {
     final cantidadBastonesPorZapata =
         ((datos.longitudTotalM * 100) / datos.separacionTransversalCm).ceil() + 1;
 
-    final aceroTransversal = CalcularAcero()(
-      tramos: [
-        TramoRequerido(
-          longitudM: longitudBastonM,
-          cantidad: cantidadBastonesPorZapata * datos.cantidadZapatas,
-        ),
-      ],
+    final aceroTransversal = CalcularAcero().calcularPiezasCortas(
+      longitudPiezaM: longitudBastonM,
+      cantidadPiezas: cantidadBastonesPorZapata * datos.cantidadZapatas,
       diametro: datos.diametroTransversal,
     );
 

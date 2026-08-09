@@ -50,6 +50,11 @@ class ResultadoCorteAcero {
   final int traslapesNecesarios;
   final double longitudTraslapeM;
 
+  /// Solo se llena cuando el resultado viene de [CalcularAcero.calcularPiezasCortas]:
+  /// cuántas piezas cortas (estribos, bastones, etc.) salen de UNA
+  /// sola varilla comercial. Null si el cálculo fue por tramos largos.
+  final int? piezasPorVarilla;
+
   const ResultadoCorteAcero({
     required this.longitudComercialM,
     required this.varillasComercialesNecesarias,
@@ -59,6 +64,7 @@ class ResultadoCorteAcero {
     required this.pesoCompradoKg,
     required this.traslapesNecesarios,
     required this.longitudTraslapeM,
+    this.piezasPorVarilla,
   });
 }
 
@@ -67,18 +73,24 @@ class ResultadoCorteAcero {
 ///
 /// Así se trabaja realmente en obra en Honduras: cada varilla
 /// comercial mide 9 m, sin excepción. Cada pieza que se necesita
-/// colocar (una varilla de columna, de viga, un estribo, etc.)
-/// consume SU PROPIA varilla comercial completa — el retazo que
-/// sobra de cortarla es desperdicio real, y NO se junta ni se
-/// reutiliza con el retazo de otra pieza distinta, aunque ambos
-/// retazos alcanzarían para cubrir algo si se sumaran. Comprar así
-/// (una varilla por pieza) es como realmente se pide en la
-/// ferretería, no optimizando cortes entre piezas.
+/// colocar (una varilla de columna, de viga, etc.) consume SU PROPIA
+/// varilla comercial completa — el retazo que sobra de cortarla es
+/// desperdicio real, y NO se junta ni se reutiliza con el retazo de
+/// otra pieza distinta, aunque ambos retazos alcanzarían para cubrir
+/// algo si se sumaran. Comprar así (una varilla por pieza) es como
+/// realmente se pide en la ferretería, no optimizando cortes entre
+/// piezas.
 ///
 /// Excepción: si un tramo es más largo que una varilla comercial (9
 /// m), no cabe en una sola pieza — ahí sí hace falta empalmar dos o
 /// más varillas con un traslape (la unión doblada). Ese traslape es
 /// material adicional que se debe comprar, no desperdicio.
+///
+/// NOTA: este método (call) es para piezas LARGAS que van una por
+/// varilla (acero longitudinal de columnas/vigas, acero de zapatas).
+/// Para piezas CORTAS Y REPETIDAS que sí se cortan varias de una
+/// misma varilla (estribos, anillos, bastones transversales), usa
+/// [calcularPiezasCortas] en su lugar.
 class CalcularAcero {
   ResultadoCorteAcero call({
     required List<TramoRequerido> tramos,
@@ -150,6 +162,68 @@ class CalcularAcero {
       pesoCompradoKg: pesoComprado,
       traslapesNecesarios: traslapesNecesarios,
       longitudTraslapeM: traslape,
+    );
+  }
+
+  /// Calcula cuántas varillas comerciales hay que comprar para
+  /// producir una cantidad de piezas CORTAS Y REPETIDAS que se cortan
+  /// de una misma varilla comercial — estribos, anillos, bastones
+  /// transversales de zapata, etc.
+  ///
+  /// A diferencia de [call], aquí SÍ se aprovechan varias piezas de
+  /// una sola varilla: si el estribo mide 1.20 m, de una varilla de
+  /// 9 m salen 7 piezas (7 x 1.20 = 8.40 m), y quedan 0.60 m de
+  /// desperdicio real por varilla — no una varilla entera por estribo.
+  ResultadoCorteAcero calcularPiezasCortas({
+    required double longitudPiezaM,
+    required int cantidadPiezas,
+    required DiametroVarilla diametro,
+    double longitudComercialM = 9.0,
+  }) {
+    if (cantidadPiezas <= 0 || longitudPiezaM <= 0) {
+      return ResultadoCorteAcero(
+        longitudComercialM: longitudComercialM,
+        varillasComercialesNecesarias: 0,
+        longitudUtilTotalM: 0,
+        desperdicioTotalM: 0,
+        pesoUtilKg: 0,
+        pesoCompradoKg: 0,
+        traslapesNecesarios: 0,
+        longitudTraslapeM: 0,
+        piezasPorVarilla: 0,
+      );
+    }
+
+    // Si la pieza no cabe en una sola varilla comercial, no es una
+    // "pieza corta" de verdad — se calcula como un tramo normal (con
+    // traslape), igual que el acero longitudinal.
+    if (longitudPiezaM > longitudComercialM) {
+      return call(
+        tramos: [
+          TramoRequerido(longitudM: longitudPiezaM, cantidad: cantidadPiezas),
+        ],
+        diametro: diametro,
+        longitudComercialM: longitudComercialM,
+      );
+    }
+
+    final piezasPorVarilla = (longitudComercialM / longitudPiezaM).floor();
+    final varillasNecesarias = (cantidadPiezas / piezasPorVarilla).ceil();
+
+    final longitudUtilTotal = longitudPiezaM * cantidadPiezas;
+    final longitudComprada = varillasNecesarias * longitudComercialM;
+    final desperdicioTotal = longitudComprada - longitudUtilTotal;
+
+    return ResultadoCorteAcero(
+      longitudComercialM: longitudComercialM,
+      varillasComercialesNecesarias: varillasNecesarias,
+      longitudUtilTotalM: longitudUtilTotal,
+      desperdicioTotalM: desperdicioTotal,
+      pesoUtilKg: longitudUtilTotal * diametro.kgPorMetro,
+      pesoCompradoKg: longitudComprada * diametro.kgPorMetro,
+      traslapesNecesarios: 0,
+      longitudTraslapeM: 0,
+      piezasPorVarilla: piezasPorVarilla,
     );
   }
 }
