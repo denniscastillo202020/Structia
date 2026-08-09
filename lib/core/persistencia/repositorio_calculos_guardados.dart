@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:structia/core/persistencia/calculo_guardado.dart';
+import 'package:structia/core/persistencia/repositorio_proyectos.dart';
 
 /// Guarda los cálculos del usuario en el almacenamiento local del
 /// dispositivo (no en la nube — vive solo en este celular). Se usa
@@ -23,10 +24,23 @@ class RepositorioCalculosGuardados {
     return calculos;
   }
 
+  /// Si el cálculo no trae ya un proyecto asignado, se etiqueta solo
+  /// con el proyecto activo en este momento (si hay uno). Así ninguna
+  /// calculadora individual necesita saber nada de proyectos — el
+  /// enlace vive aquí, en un solo lugar.
   static Future<void> guardar(CalculoGuardado calculo) async {
     final prefs = await SharedPreferences.getInstance();
     final actuales = await listar();
-    actuales.add(calculo);
+
+    var aGuardar = calculo;
+    if (aGuardar.proyectoId == null) {
+      final activoId = await RepositorioProyectos.idActivo();
+      if (activoId != null) {
+        aGuardar = aGuardar.conProyecto(activoId);
+      }
+    }
+
+    actuales.add(aGuardar);
     await prefs.setString(_clave, jsonEncode(actuales.map((c) => c.toJson()).toList()));
   }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:structia/core/constants/app_constants.dart';
+import 'package:structia/core/persistencia/proyecto.dart';
+import 'package:structia/core/persistencia/repositorio_proyectos.dart';
 import 'package:structia/features/calculadora_acero/presentation/screens/calculadora_acero_screen.dart';
 import 'package:structia/features/calculadora_columna/presentation/screens/calculadora_columna_screen.dart';
 import 'package:structia/features/calculadora_concreto/presentation/screens/calculadora_concreto_screen.dart';
@@ -9,9 +11,35 @@ import 'package:structia/features/calculadora_zapata/presentation/screens/calcul
 import 'package:structia/features/guardados/presentation/screens/calculos_guardados_screen.dart';
 import 'package:structia/features/importar_ocr/presentation/screens/importar_captura_screen.dart';
 import 'package:structia/features/presupuesto/presentation/screens/presupuesto_screen.dart';
+import 'package:structia/features/proyectos/presentation/screens/proyectos_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  Proyecto? _proyectoActivo;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarProyectoActivo();
+  }
+
+  Future<void> _cargarProyectoActivo() async {
+    final activo = await RepositorioProyectos.activo();
+    if (mounted) setState(() => _proyectoActivo = activo);
+  }
+
+  Future<void> _abrirProyectos() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ProyectosScreen()),
+    );
+    _cargarProyectoActivo();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +59,29 @@ class HomeScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppConstants.paddingMd),
         children: [
+          Card(
+            color: _proyectoActivo != null
+                ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
+                : null,
+            child: ListTile(
+              leading: Icon(
+                Icons.folder_outlined,
+                color: _proyectoActivo != null ? Theme.of(context).colorScheme.primary : null,
+              ),
+              title: Text(
+                _proyectoActivo != null ? _proyectoActivo!.nombre : 'Sin proyecto activo',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                _proyectoActivo != null
+                    ? 'Todo lo que calcules se guarda aquí'
+                    : 'Toca para crear o elegir un proyecto',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _abrirProyectos,
+            ),
+          ),
+          const SizedBox(height: AppConstants.paddingLg),
           Text(
             'Calculadora de materiales de construcción',
             style: Theme.of(context).textTheme.titleMedium,

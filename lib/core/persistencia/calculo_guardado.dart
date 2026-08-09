@@ -23,6 +23,12 @@ class CalculoGuardado {
   /// Honduras: por cantidad de varillas de cada calibre, no por peso.
   final Map<String, int>? varillasPorDiametro;
 
+  /// A qué proyecto pertenece (ej. "Proyecto de Carol"). Null = cálculo
+  /// suelto, sin proyecto asignado (así quedan los que se guardaron
+  /// antes de que existiera esta función, o los que se guardan sin
+  /// tener ningún proyecto activo).
+  final String? proyectoId;
+
   const CalculoGuardado({
     required this.id,
     required this.tipo,
@@ -39,7 +45,30 @@ class CalculoGuardado {
     this.morteroM3,
     this.areaNetaM2,
     this.varillasPorDiametro,
+    this.proyectoId,
   });
+
+  /// Copia este cálculo asignándole un proyecto. Se usa al guardar,
+  /// para etiquetar automáticamente con el proyecto activo sin que
+  /// cada pantalla de calculadora tenga que saber nada de proyectos.
+  CalculoGuardado conProyecto(String proyectoId) => CalculoGuardado(
+        id: id,
+        tipo: tipo,
+        titulo: titulo,
+        subtitulo: subtitulo,
+        filas: filas,
+        fecha: fecha,
+        volumenConcretoM3: volumenConcretoM3,
+        bolsasCemento: bolsasCemento,
+        arenaM3: arenaM3,
+        gravaM3: gravaM3,
+        pesoAceroKg: pesoAceroKg,
+        bloquesTotal: bloquesTotal,
+        morteroM3: morteroM3,
+        areaNetaM2: areaNetaM2,
+        varillasPorDiametro: varillasPorDiametro,
+        proyectoId: proyectoId,
+      );
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -57,6 +86,7 @@ class CalculoGuardado {
         'morteroM3': morteroM3,
         'areaNetaM2': areaNetaM2,
         'varillasPorDiametro': varillasPorDiametro,
+        'proyectoId': proyectoId,
       };
 
   factory CalculoGuardado.fromJson(Map<String, dynamic> json) {
@@ -79,6 +109,7 @@ class CalculoGuardado {
       areaNetaM2: (json['areaNetaM2'] as num?)?.toDouble(),
       varillasPorDiametro: (json['varillasPorDiametro'] as Map?)
           ?.map((k, v) => MapEntry(k as String, (v as num).toInt())),
+      proyectoId: json['proyectoId'] as String?,
     );
   }
 }

@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:structia/core/constants/app_constants.dart';
 import 'package:structia/core/pdf/exportar_pdf.dart';
 import 'package:structia/core/persistencia/calculo_guardado.dart';
+import 'package:structia/core/persistencia/proyecto.dart';
 import 'package:structia/core/persistencia/repositorio_calculos_guardados.dart';
+import 'package:structia/core/persistencia/repositorio_proyectos.dart';
 import 'package:structia/features/calculadora_acero/domain/calcular_acero.dart';
 import 'package:structia/features/importar_ocr/presentation/screens/importar_captura_screen.dart';
 
 /// Suma los mapas {etiqueta_diametro: cantidad} de varillas COMERCIALES
-/// de todos los cálculos guardados, y los devuelve ordenados de menor
-/// a mayor diámetro (3/8", 1/2", 5/8"...) — el orden en que se piden
-/// en la ferretería.
+/// de un grupo de cálculos, y los devuelve ordenados de menor a mayor
+/// diámetro (3/8", 1/2", 5/8"...) — el orden en que se piden en la
+/// ferretería.
 List<MapEntry<String, int>> _totalVarillasPorDiametro(List<CalculoGuardado> calculos) {
   final totales = <String, int>{};
   for (final c in calculos) {
@@ -35,16 +37,22 @@ class CalculosGuardadosScreen extends StatefulWidget {
 }
 
 class _CalculosGuardadosScreenState extends State<CalculosGuardadosScreen> {
-  late Future<List<CalculoGuardado>> _futuro;
+  late Future<(List<CalculoGuardado>, List<Proyecto>)> _futuro;
 
   @override
   void initState() {
     super.initState();
-    _futuro = RepositorioCalculosGuardados.listar();
+    _futuro = _cargar();
+  }
+
+  Future<(List<CalculoGuardado>, List<Proyecto>)> _cargar() async {
+    final calculos = await RepositorioCalculosGuardados.listar();
+    final proyectos = await RepositorioProyectos.listar();
+    return (calculos, proyectos);
   }
 
   void _recargar() {
-    setState(() => _futuro = RepositorioCalculosGuardados.listar());
+    setState(() => _futuro = _cargar());
   }
 
   Future<void> _eliminar(String id) async {
@@ -70,13 +78,13 @@ class _CalculosGuardadosScreenState extends State<CalculosGuardadosScreen> {
           ),
         ],
       ),
-      body: FutureBuilder<List<CalculoGuardado>>(
+      body: FutureBuilder<(List<CalculoGuardado>, List<Proyecto>)>(
         future: _futuro,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          final calculos = snapshot.data!;
+          final (calculos, proyectos) = snapshot.data!;
           if (calculos.isEmpty) {
             return Center(
               child: Padding(
@@ -113,122 +121,202 @@ class _CalculosGuardadosScreenState extends State<CalculosGuardadosScreen> {
             );
           }
 
-          final totalConcreto = calculos.fold(0.0, (s, c) => s + (c.volumenConcretoM3 ?? 0));
-          final totalBolsas = calculos.fold(0.0, (s, c) => s + (c.bolsasCemento ?? 0));
-          final totalArena = calculos.fold(0.0, (s, c) => s + (c.arenaM3 ?? 0));
-          final totalGrava = calculos.fold(0.0, (s, c) => s + (c.gravaM3 ?? 0));
-          final totalAcero = calculos.fold(0.0, (s, c) => s + (c.pesoAceroKg ?? 0));
-          final totalVarillas = _totalVarillasPorDiametro(calculos);
-          final totalBloques = calculos.fold(0.0, (s, c) => s + (c.bloquesTotal ?? 0));
-          final totalMortero = calculos.fold(0.0, (s, c) => s + (c.morteroM3 ?? 0));
-          final totalAreaMuros = calculos.fold(0.0, (s, c) => s + (c.areaNetaM2 ?? 0));
+          // Agrupa los cálculos por proyectoId, respetando el orden de
+          // "más reciente primero" que ya trae la lista de proyectos.
+          // Los que no tienen proyecto asignado quedan en su propio
+          // grupo, al final.
+          final calculosPorProyecto = <String, List<CalculoGuardado>>{};
+          final sinProyecto = <CalculoGuardado>[];
+          for (final c in calculos) {
+            if (c.proyectoId == null) {
+              sinProyecto.add(c);
+            } else {
+              (calculosPorProyecto[c.proyectoId!] ??= []).add(c);
+            }
+          }
+
+          final gruposOrdenados = <(String nombre, List<CalculoGuardado> items)>[];
+          for (final p in proyectos) {
+            final items = calculosPorProyecto[p.id];
+            if (items != null && items.isNotEmpty) {
+              gruposOrdenados.add((p.nombre, items));
+            }
+          }
+          if (sinProyecto.isNotEmpty) {
+            gruposOrdenados.add(('Sin proyecto asignado', sinProyecto));
+          }
 
           return ListView(
             padding: const EdgeInsets.all(AppConstants.paddingMd),
             children: [
-              Card(
-                color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.4),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppConstants.paddingMd),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Total del proyecto (${calculos.length} elementos)',
-                          style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: AppConstants.paddingSm),
-                      _FilaTotal('Concreto', '${totalConcreto.toStringAsFixed(2)} m³'),
-                      if (totalBolsas > 0)
-                        _FilaTotal('Cemento', '${totalBolsas.ceil()} sacos de 42.5 kg'),
-                      if (totalArena > 0) _FilaTotal('Arena', '${totalArena.toStringAsFixed(2)} m³'),
-                      if (totalGrava > 0) _FilaTotal('Grava', '${totalGrava.toStringAsFixed(2)} m³'),
-                      if (totalVarillas.isNotEmpty)
-                        ...totalVarillas.map(
-                          (e) => _FilaTotal('Varillas ${e.key}', '${e.value} unidades'),
-                        )
-                      else if (totalAcero > 0)
-                        _FilaTotal('Acero', '${totalAcero.toStringAsFixed(2)} kg'),
-                      if (totalAcero > 0 && totalVarillas.isNotEmpty)
-                        _FilaTotal('Peso total de acero', '${totalAcero.toStringAsFixed(2)} kg'),
-                      if (totalBloques > 0) _FilaTotal('Bloques', '${totalBloques.ceil()} unidades'),
-                      if (totalMortero > 0) _FilaTotal('Mortero', '${totalMortero.toStringAsFixed(2)} m³'),
-                      if (totalAreaMuros > 0)
-                        _FilaTotal('Área de muros', '${totalAreaMuros.toStringAsFixed(2)} m²'),
-                      const SizedBox(height: AppConstants.paddingSm),
-                      OutlinedButton.icon(
-                        onPressed: () => exportarResultadosPdf(
-                          titulo: 'Resumen del proyecto',
-                          subtitulo: '${calculos.length} elementos guardados',
-                          filas: [
-                            FilaPdf('Concreto total', '${totalConcreto.toStringAsFixed(2)} m³'),
-                            if (totalBolsas > 0)
-                              FilaPdf('Cemento total', '${totalBolsas.ceil()} sacos de 42.5 kg'),
-                            if (totalArena > 0) FilaPdf('Arena total', '${totalArena.toStringAsFixed(2)} m³'),
-                            if (totalGrava > 0) FilaPdf('Grava total', '${totalGrava.toStringAsFixed(2)} m³'),
-                            if (totalVarillas.isNotEmpty)
-                              ...totalVarillas.map(
-                                (e) => FilaPdf('Varillas ${e.key}', '${e.value} unidades'),
-                              )
-                            else if (totalAcero > 0)
-                              FilaPdf('Acero total', '${totalAcero.toStringAsFixed(2)} kg'),
-                            if (totalAcero > 0 && totalVarillas.isNotEmpty)
-                              FilaPdf('Peso total de acero', '${totalAcero.toStringAsFixed(2)} kg'),
-                            if (totalBloques > 0) FilaPdf('Bloques total', '${totalBloques.ceil()} unidades'),
-                            if (totalMortero > 0) FilaPdf('Mortero total', '${totalMortero.toStringAsFixed(2)} m³'),
-                            if (totalAreaMuros > 0)
-                              FilaPdf('Área de muros total', '${totalAreaMuros.toStringAsFixed(2)} m²'),
-                            ...calculos.map((c) => FilaPdf(c.titulo, c.subtitulo)),
-                          ],
-                          nota: 'Suma de todos los elementos guardados en StructIA. Cada elemento fue '
-                              'calculado con el armado y dosificación que tú especificaste — confirma el '
-                              'diseño estructural con un ingeniero antes de construir.',
-                        ),
-                        icon: const Icon(Icons.picture_as_pdf_outlined),
-                        label: const Text('Exportar resumen del proyecto a PDF'),
-                      ),
-                    ],
-                  ),
-                ),
+              Text(
+                '${proyectos.length} proyecto(s) · ${calculos.length} cálculo(s) en total',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
               ),
               const SizedBox(height: AppConstants.paddingMd),
-              ...calculos.map((calculo) {
-                return Card(
-                  child: ExpansionTile(
-                    leading: _IconoPorTipo(tipo: calculo.tipo),
-                    title: Text(calculo.titulo),
-                    subtitle: Text(calculo.subtitulo),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => _eliminar(calculo.id),
-                    ),
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppConstants.paddingMd,
-                          vertical: AppConstants.paddingSm,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: calculo.filas
-                              .map((f) => Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 3),
-                                    child: Row(
-                                      children: [
-                                        Expanded(child: Text(f['etiqueta'] ?? '')),
-                                        Text(f['valor'] ?? '',
-                                            style: const TextStyle(fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                  ))
-                              .toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
+              ...gruposOrdenados.map(
+                (grupo) => _SeccionProyecto(
+                  nombreProyecto: grupo.$1,
+                  calculos: grupo.$2,
+                  onEliminar: _eliminar,
+                ),
+              ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Una sección completa de "Mis cálculos guardados": el nombre del
+/// proyecto, SU propio subtotal de materiales (separado de los demás
+/// proyectos) y la lista de cálculos que contiene.
+class _SeccionProyecto extends StatelessWidget {
+  final String nombreProyecto;
+  final List<CalculoGuardado> calculos;
+  final void Function(String id) onEliminar;
+
+  const _SeccionProyecto({
+    required this.nombreProyecto,
+    required this.calculos,
+    required this.onEliminar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final totalConcreto = calculos.fold(0.0, (s, c) => s + (c.volumenConcretoM3 ?? 0));
+    final totalBolsas = calculos.fold(0.0, (s, c) => s + (c.bolsasCemento ?? 0));
+    final totalArena = calculos.fold(0.0, (s, c) => s + (c.arenaM3 ?? 0));
+    final totalGrava = calculos.fold(0.0, (s, c) => s + (c.gravaM3 ?? 0));
+    final totalAcero = calculos.fold(0.0, (s, c) => s + (c.pesoAceroKg ?? 0));
+    final totalVarillas = _totalVarillasPorDiametro(calculos);
+    final totalBloques = calculos.fold(0.0, (s, c) => s + (c.bloquesTotal ?? 0));
+    final totalMortero = calculos.fold(0.0, (s, c) => s + (c.morteroM3 ?? 0));
+    final totalAreaMuros = calculos.fold(0.0, (s, c) => s + (c.areaNetaM2 ?? 0));
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppConstants.paddingLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.folder_outlined, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: AppConstants.paddingSm),
+              Expanded(
+                child: Text(
+                  nombreProyecto,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              Text('${calculos.length} elemento(s)',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                      )),
+            ],
+          ),
+          const SizedBox(height: AppConstants.paddingSm),
+          Card(
+            color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.4),
+            child: Padding(
+              padding: const EdgeInsets.all(AppConstants.paddingMd),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _FilaTotal('Concreto', '${totalConcreto.toStringAsFixed(2)} m³'),
+                  if (totalBolsas > 0)
+                    _FilaTotal('Cemento', '${totalBolsas.ceil()} sacos de 42.5 kg'),
+                  if (totalArena > 0) _FilaTotal('Arena', '${totalArena.toStringAsFixed(2)} m³'),
+                  if (totalGrava > 0) _FilaTotal('Grava', '${totalGrava.toStringAsFixed(2)} m³'),
+                  if (totalVarillas.isNotEmpty)
+                    ...totalVarillas.map(
+                      (e) => _FilaTotal('Varillas ${e.key}', '${e.value} unidades'),
+                    )
+                  else if (totalAcero > 0)
+                    _FilaTotal('Acero', '${totalAcero.toStringAsFixed(2)} kg'),
+                  if (totalAcero > 0 && totalVarillas.isNotEmpty)
+                    _FilaTotal('Peso total de acero', '${totalAcero.toStringAsFixed(2)} kg'),
+                  if (totalBloques > 0) _FilaTotal('Bloques', '${totalBloques.ceil()} unidades'),
+                  if (totalMortero > 0) _FilaTotal('Mortero', '${totalMortero.toStringAsFixed(2)} m³'),
+                  if (totalAreaMuros > 0)
+                    _FilaTotal('Área de muros', '${totalAreaMuros.toStringAsFixed(2)} m²'),
+                  const SizedBox(height: AppConstants.paddingSm),
+                  OutlinedButton.icon(
+                    onPressed: () => exportarResultadosPdf(
+                      titulo: nombreProyecto,
+                      subtitulo: '${calculos.length} elementos guardados',
+                      filas: [
+                        FilaPdf('Concreto total', '${totalConcreto.toStringAsFixed(2)} m³'),
+                        if (totalBolsas > 0)
+                          FilaPdf('Cemento total', '${totalBolsas.ceil()} sacos de 42.5 kg'),
+                        if (totalArena > 0) FilaPdf('Arena total', '${totalArena.toStringAsFixed(2)} m³'),
+                        if (totalGrava > 0) FilaPdf('Grava total', '${totalGrava.toStringAsFixed(2)} m³'),
+                        if (totalVarillas.isNotEmpty)
+                          ...totalVarillas.map(
+                            (e) => FilaPdf('Varillas ${e.key}', '${e.value} unidades'),
+                          )
+                        else if (totalAcero > 0)
+                          FilaPdf('Acero total', '${totalAcero.toStringAsFixed(2)} kg'),
+                        if (totalAcero > 0 && totalVarillas.isNotEmpty)
+                          FilaPdf('Peso total de acero', '${totalAcero.toStringAsFixed(2)} kg'),
+                        if (totalBloques > 0) FilaPdf('Bloques total', '${totalBloques.ceil()} unidades'),
+                        if (totalMortero > 0) FilaPdf('Mortero total', '${totalMortero.toStringAsFixed(2)} m³'),
+                        if (totalAreaMuros > 0)
+                          FilaPdf('Área de muros total', '${totalAreaMuros.toStringAsFixed(2)} m²'),
+                        ...calculos.map((c) => FilaPdf(c.titulo, c.subtitulo)),
+                      ],
+                      nota: 'Suma de los elementos guardados en "$nombreProyecto". Cada elemento fue '
+                          'calculado con el armado y dosificación que tú especificaste — confirma el '
+                          'diseño estructural con un ingeniero antes de construir.',
+                    ),
+                    icon: const Icon(Icons.picture_as_pdf_outlined),
+                    label: const Text('Exportar este proyecto a PDF'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppConstants.paddingSm),
+          ...calculos.map((calculo) {
+            return Card(
+              child: ExpansionTile(
+                leading: _IconoPorTipo(tipo: calculo.tipo),
+                title: Text(calculo.titulo),
+                subtitle: Text(calculo.subtitulo),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => onEliminar(calculo.id),
+                ),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppConstants.paddingMd,
+                      vertical: AppConstants.paddingSm,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: calculo.filas
+                          .map((f) => Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 3),
+                                child: Row(
+                                  children: [
+                                    Expanded(child: Text(f['etiqueta'] ?? '')),
+                                    Text(f['valor'] ?? '',
+                                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
