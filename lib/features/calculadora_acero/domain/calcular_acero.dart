@@ -179,6 +179,7 @@ class CalcularAcero {
     required int cantidadPiezas,
     required DiametroVarilla diametro,
     double longitudComercialM = 9.0,
+    double? longitudTraslapeM,
   }) {
     if (cantidadPiezas <= 0 || longitudPiezaM <= 0) {
       return ResultadoCorteAcero(
@@ -204,6 +205,7 @@ class CalcularAcero {
         ],
         diametro: diametro,
         longitudComercialM: longitudComercialM,
+        longitudTraslapeM: longitudTraslapeM,
       );
     }
 

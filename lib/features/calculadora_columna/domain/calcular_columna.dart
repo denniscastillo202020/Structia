@@ -136,14 +136,11 @@ class CalcularColumna {
   ResultadoColumna call(DatosColumna datos) {
     final cantidadTotal = datos.cantidadColumnas;
 
-    final aceroLongitudinal = CalcularAcero()(
-      tramos: [
-        TramoRequerido(
-          longitudM: datos.alturaM,
-          cantidad: datos.cantidadVarillasLongitudinales * cantidadTotal,
-        ),
-      ],
+    final aceroLongitudinal = CalcularAcero().calcularPiezasCortas(
+      longitudPiezaM: datos.alturaM,
+      cantidadPiezas: datos.cantidadVarillasLongitudinales * cantidadTotal,
       diametro: datos.diametroLongitudinal,
+      longitudTraslapeM: 0.5,
     );
 
     final alturaCm = datos.alturaM * 100;

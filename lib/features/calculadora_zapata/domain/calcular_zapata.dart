@@ -57,14 +57,11 @@ class ResultadoZapataCorrida {
 
 class CalcularZapataCorrida {
   ResultadoZapataCorrida call(DatosZapataCorrida datos) {
-    final aceroLongitudinal = CalcularAcero()(
-      tramos: [
-        TramoRequerido(
-          longitudM: datos.longitudTotalM,
-          cantidad: datos.cantidadVarillasLongitudinales * datos.cantidadZapatas,
-        ),
-      ],
+    final aceroLongitudinal = CalcularAcero().calcularPiezasCortas(
+      longitudPiezaM: datos.longitudTotalM,
+      cantidadPiezas: datos.cantidadVarillasLongitudinales * datos.cantidadZapatas,
       diametro: datos.diametroLongitudinal,
+      longitudTraslapeM: 0.5,
     );
 
     final longitudBastonM = datos.longitudBastonCm / 100;
@@ -150,24 +147,18 @@ class ResultadoZapataAislada {
 
 class CalcularZapataAislada {
   ResultadoZapataAislada call(DatosZapataAislada datos) {
-    final aceroX = CalcularAcero()(
-      tramos: [
-        TramoRequerido(
-          longitudM: datos.longitudBarraDireccionXM,
-          cantidad: datos.cantidadBarrasDireccionX * datos.cantidadZapatas,
-        ),
-      ],
+    final aceroX = CalcularAcero().calcularPiezasCortas(
+      longitudPiezaM: datos.longitudBarraDireccionXM,
+      cantidadPiezas: datos.cantidadBarrasDireccionX * datos.cantidadZapatas,
       diametro: datos.diametroCama,
+      longitudTraslapeM: 0.5,
     );
 
-    final aceroY = CalcularAcero()(
-      tramos: [
-        TramoRequerido(
-          longitudM: datos.longitudBarraDireccionYM,
-          cantidad: datos.cantidadBarrasDireccionY * datos.cantidadZapatas,
-        ),
-      ],
+    final aceroY = CalcularAcero().calcularPiezasCortas(
+      longitudPiezaM: datos.longitudBarraDireccionYM,
+      cantidadPiezas: datos.cantidadBarrasDireccionY * datos.cantidadZapatas,
       diametro: datos.diametroCama,
+      longitudTraslapeM: 0.5,
     );
 
     return ResultadoZapataAislada(

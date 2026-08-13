@@ -100,24 +100,18 @@ class CalcularViga {
   ResultadoViga call(DatosViga datos) {
     final cantidadTotal = datos.cantidadVigas;
 
-    final aceroSuperior = CalcularAcero()(
-      tramos: [
-        TramoRequerido(
-          longitudM: datos.luzM,
-          cantidad: datos.cantidadVarillasSuperiores * cantidadTotal,
-        ),
-      ],
+    final aceroSuperior = CalcularAcero().calcularPiezasCortas(
+      longitudPiezaM: datos.luzM,
+      cantidadPiezas: datos.cantidadVarillasSuperiores * cantidadTotal,
       diametro: datos.diametroSuperior,
+      longitudTraslapeM: 0.5,
     );
 
-    final aceroInferior = CalcularAcero()(
-      tramos: [
-        TramoRequerido(
-          longitudM: datos.luzM,
-          cantidad: datos.cantidadVarillasInferiores * cantidadTotal,
-        ),
-      ],
+    final aceroInferior = CalcularAcero().calcularPiezasCortas(
+      longitudPiezaM: datos.luzM,
+      cantidadPiezas: datos.cantidadVarillasInferiores * cantidadTotal,
       diametro: datos.diametroInferior,
+      longitudTraslapeM: 0.5,
     );
 
     final longitudCm = datos.luzM * 100;
